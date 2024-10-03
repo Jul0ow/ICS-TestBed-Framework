@@ -6,3 +6,6 @@ sed -i "s/^.*requiretty/#Defaults requiretty/" /etc/sudoers
 
 # Disable daily apt unattended updates.
 echo 'APT::Periodic::Enable "0";' >> /etc/apt/apt.conf.d/10periodic
+
+# Fix VMWare DHCP client
+echo '* * * * * root dhclient' >> /etc/crontab

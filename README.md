@@ -51,7 +51,7 @@ Start up a HMI:
 
 The default configuration profile will deploy 1 HMI and 4 RTUs. The HMI will integrate the RTUs using the IEC104 and OPC-UA. The RTUs are configured to return random process data. 
 
-## Prerequisites (Vagrant+VirtualBox)
+## Prerequisites (Vagrant+VMware)
 
 Use the latest version of Vagrant over the pre-built/distribution packages as these scripts use features from the latest versions of Vagrant. *Should be fine if using Ubuntu 18.04.1 LTS*.
 
@@ -65,10 +65,13 @@ Use the latest version of Vagrant over the pre-built/distribution packages as th
 
 This is an optional development step. It builds a virtual machine image, pre-configured to run the testbed nodes. If you don't want to create the latest version, the default option is get a stable image from Vagrant's image repository which stays in step with the master branch. 
 
-[Packer](https://www.packer.io/) is used to create a virtual machine image suitable for VirtualBox and Vagrant:
+[Packer](https://www.packer.io/) is used to create a virtual machine image suitable for VMware and Vagrant:
 
 	cd vagrant_image
-	packer build vagrant-node.json
+	packer plugins install github.com/hashicorp/vmware
+    packer plugins install github.com/hashicorp/ansible
+    packer init vagrant-node.json.pkr.hcl
+    packer build vagrant-node.json.pkr.hcl
 	vagrant box add testbed-node vagrant.box
 
 ## Deploy
