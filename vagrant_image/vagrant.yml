@@ -5,7 +5,7 @@
     - name: Install Requirements
       apt: name={{ item }} state=present
       with_items:
-        - openjdk-8-jdk
+        - openjdk-17-jdk
         - maven
         - tmux
         - htop
@@ -13,7 +13,7 @@
     - name: Configure the default Java to OpenJDK 8
       alternatives:
         name: java
-        path: /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+        path: /usr/lib/jvm/java-17-openjdk-amd64/bin/java
 
     # SSH daemon configuration.
     - name: Configure SSH daemon.

@@ -23,9 +23,9 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.define "hmi" do |hmi|
-    hmi.vm.hostname = "hmi"
-    hmi.vm.box = "testbed-node"
-    hmi.vm.network "public_network", ip: "10.50.50.200"
-  end
+  #config.vm.define "hmi" do |hmi|
+  #  hmi.vm.hostname = "hmi"
+  #  hmi.vm.box = "testbed-node"
+  #  hmi.vm.network "public_network", ip: "10.50.50.200"
+  #end
 end
