@@ -23,7 +23,7 @@ package org.openmuc.j60870;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 /**
  * Represents a binary state information (BSI) information element.

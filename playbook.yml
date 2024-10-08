@@ -5,13 +5,12 @@
     - name: Install Requirements
       apt: name={{ item }} state=present
       with_items:
-        - openjdk-8-jdk
-        - maven
+        - openjdk-17-jdk
         - tmux
         - htop
 
     - name: Compile source code.
-      command: "mvn package"
+      command: "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn package -DskipTests -Dmaven.javadoc.skip=true"
       args:
         creates: "/vagrant/node/target/node-1.0.jar"
         chdir: "/vagrant/"
