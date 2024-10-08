@@ -20,10 +20,6 @@ public class ModBusTCP {
         LOGGER = Logger.getLogger(ModBusTCP.class.getName());
     }
 
-    public static void main(String[] args) {
-        new ModBusTCP().start("127.0.0.1", 502);
-    }
-
     public void start(String bindAddress, int port) {
         ModbusTcpServerTransport serverTransport = NettyTcpServerTransport.create(cfg -> {
             cfg.bindAddress = bindAddress;
@@ -41,8 +37,8 @@ public class ModBusTCP {
 
         try {
             server.start();
-            LOGGER.log(Level.INFO, " RTU Server started!");
-            System.out.println("RTU Started.");
+            LOGGER.log(Level.INFO, " TCP Server started!");
+            System.out.println("TCP Started.");
         } catch (ExecutionException | InterruptedException e) {
             LOGGER.log(Level.SEVERE, "Unable to start listening: {0}", e.getMessage());
         }

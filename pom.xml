@@ -19,9 +19,7 @@
   <url>https://gitlab.com/PMaynard/SCADA-TestBed</url>
 
   <modules>
-    <module>j60870</module>
     <module>node</module>
-    <module>UA-Java</module>
   </modules>
 
 </project>

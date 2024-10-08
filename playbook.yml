@@ -10,7 +10,7 @@
         - htop
 
     - name: Compile source code.
-      command: "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn package -DskipTests -Dmaven.javadoc.skip=true"
+      command: "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 /usr/share/maven/bin/mvn package -DskipTests -Dmaven.javadoc.skip=true"
       args:
         creates: "/vagrant/node/target/node-1.0.jar"
         chdir: "/vagrant/"
