@@ -7,42 +7,62 @@ import com.digitalpetri.modbus.exceptions.ModbusResponseException;
 import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import com.digitalpetri.modbus.pdu.*;
 import xyz.scada.testbed.node.ModBusTCP;
+import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
+import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
+import xyz.scada.testbed.node.hmi.plc.Plc;
 
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HMI {
     private static Logger LOGGER = null;
 
+    private Map<String, Plc> plcs = new Hashtable<>();
+
     public HMI() {
         LOGGER = Logger.getLogger(this.getClass().getName());
         LOGGER.info("Starting HMI");
     }
 
-    public void readHoldingRegisters(String destIp) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
-        var transport = NettyTcpClientTransport.create(cfg -> {
-            cfg.hostname = destIp;
-            cfg.port = 502;
-        });
 
-        var client = ModbusTcpClient.create(transport);
-        client.connect();
+    public void addPlc(String name, String ipAddr, int port, String description) throws PlcAlreadyPresent {
+        var plc = new Plc(ipAddr, port, name, description);
 
-        LOGGER.info("Sending writeSingleRegister");
+        // Test if not already present
+        if (plcs.get(name) != null)
+        {
+            throw new PlcAlreadyPresent(name);
+        }
 
-        WriteSingleRegisterResponse writeSingleRegisterResponse = client.writeSingleRegister(
-                1,
-                new WriteSingleRegisterRequest(0, 1));
+        plcs.put(name,plc);
+        LOGGER.info("Add plc: " + plc);
+    }
 
-        LOGGER.info("write response " + writeSingleRegisterResponse);
+    public void readHoldingRegisters(String plcName, int address, int quantity) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
+        var response = getPlc(plcName).readHoldingRegister(address,quantity);
+        System.out.println(response);
+    }
 
-        LOGGER.info("Sending readHoldingRegisters");
+    public void writeSingleRegisterResponse(String plcName, int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
+        getPlc(plcName).writeSingleRegisterResponse(address, value);
+    }
+    
+    @Override
+    public String toString() {
+        String res = "HMI:\n";
+        for (var plc : plcs.values())
+        {
+            res += "\t" + plc + "\n";
+        }
+        return res;
+    }
 
-        ReadHoldingRegistersResponse response = client.readHoldingRegisters(
-                1,
-                new ReadHoldingRegistersRequest(0, 10)
-        );
+    private Plc getPlc(String plcName) throws PlcNotPresent {
+        var plc = plcs.get(plcName);
+        if (plc == null)
+            throw new PlcNotPresent(plcName);
 
-        LOGGER.info("Response: " + response);
+        return plc;
     }
 }
