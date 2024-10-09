@@ -10,18 +10,19 @@
         - htop
 
     - name: Compile source code.
-      command: "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 /usr/share/maven/bin/mvn package -DskipTests -Dmaven.javadoc.skip=true"
+      shell: JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 /usr/share/maven/bin/mvn package
       args:
-        creates: "/vagrant/node/target/node-1.0.jar"
         chdir: "/vagrant/"
-      when: "'rtu' in ansible_hostname or 'hmi' in ansible_hostname"
+      when: "'rtu' in ansible_hostname or 'hmi' in ansible_hostname or 'tcp' in ansible_hostname"
 
     - name: Startup RTU
       shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/rtu.cmd ENTER"
-      become_user: vagrant 
       when: "'rtu' in ansible_hostname"
+
+    - name: Startup TCP
+      shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/tcp.cmd ENTER"
+      when: "'tcp' in ansible_hostname"
 
     - name: Startup HMI
       shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/hmi.cmd ENTER"
-      become_user: vagrant 
       when: "'hmi' in ansible_hostname"

@@ -24,7 +24,7 @@ This allows researchers to build testbeds that can be configured to replicate re
 Clone the repository and install the required dependencies:
 
 	git clone --recurse-submodules git@github.com:PMaynard/ICS-TestBed-Framework.git
- 	sudo apt install openjdk-8-jdk maven
+ 	sudo apt install openjdk-17-jdk maven
 
 Build: 
 
@@ -51,15 +51,17 @@ Start up a HMI:
 
 The default configuration profile will deploy 1 HMI and 4 RTUs. The HMI will integrate the RTUs using the IEC104 and OPC-UA. The RTUs are configured to return random process data. 
 
-## Prerequisites (Vagrant+VMware)
+## Prerequisites (Packer+Vagrant+VMware)
 
 Use the latest version of Vagrant over the pre-built/distribution packages as these scripts use features from the latest versions of Vagrant. *Should be fine if using Ubuntu 18.04.1 LTS*.
 
-	git clone https://github.com/mitchellh/vagrant.git /opt/vagrant
-	cd /opt/vagrant
-	bundle install
-	bundle --binstubs exec
-	ln -sf /opt/vagrant/exec/vagrant /usr/local/bin/vagrant 
+```shell
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install packer vagrant
+vagrant plugin install vagrant-vmware-desktop
+```
+
 
 ## [OPTIONAL] Create VM Image
 
@@ -90,7 +92,8 @@ The default IP settings are ```10.50.50.*```. ```.200``` is used for HMI and ```
 
 # Example Dataset
 
-An example dataset was created, using the default deployment configuration. PCAPs can be downloaded from [here](https://dx.doi.org/10.6084/m9.figshare.6133457.v1). The IEC104 MITM was performed using the ettercap plugin located [here](https://github.com/PMaynard/ettercap-104-mitm)
+An example dataset was created, using the default deployment configuration. PCAPs can be downloaded from [here](https://dx.doi.org/10.6084/m9.figshare.6133457.v1). 
+The IEC104 MITM was performed using the ettercap plugin located [here](https://github.com/PMaynard/ettercap-104-mitm)
 
 -   **\[Host-SCAN 13:45\]**: Basic network reconnaissance using a Nmap
     network wide scan. CMD: 'nmap -sn 10.50.50.\*'

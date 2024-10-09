@@ -16,8 +16,8 @@ Vagrant.configure("2") do |config|
   end
   
   (1..1).each do |i|
-    config.vm.define "rtu-#{i}" do |node|
-      node.vm.hostname = "rtu"
+    config.vm.define "tcp-#{i}" do |node|
+      node.vm.hostname = "tcp"
       node.vm.box = "testbed-node"
       node.vm.network "public_network", ip: "10.50.50.10#{i}"
     end
