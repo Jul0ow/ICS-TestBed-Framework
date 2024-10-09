@@ -2,11 +2,15 @@ package xyz.scada.testbed.node;
 
 //import org.apache.commons.cli.*;
 
+import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
+import com.digitalpetri.modbus.exceptions.ModbusResponseException;
+import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
+import xyz.scada.testbed.node.hmi.HMI;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +30,8 @@ public class Main {
 
     //    Current Running States
     ModBusTCP modbusTCP = null;
+    HMI hmi = null;
+
 
     String listen = DEFAULT_LISTEN;
     int portModbus = DEFAULT_MODBUS_PORT;
@@ -40,7 +46,7 @@ public class Main {
         SpringApplication.run(Main.class, args);
     }
 
-    @ShellMethod(value = "Start TCP Modbus Server.", group = "TCP")
+    @ShellMethod(value = "Configure TCP Modbus Server.", group = "TCP")
     public void tcp() {
         // if (hmi != null) {
         //     System.out.println("Error: Currently configured as a HMI.");
@@ -62,6 +68,28 @@ public class Main {
 
 
     // TODO hmi to Modbus
+    @ShellMethod(value = "Test hmi", group = "MHI", prefix = "")
+    public void testHmi(@ShellOption() String dest)
+    {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.readHoldingRegisters(dest);
+        } catch (Exception e) {
+            LOGGER.warning(e.getMessage());
+        }
+        /*catch (ModbusExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (ModbusTimeoutException e) {
+            throw new RuntimeException(e);
+        } catch (ModbusResponseException e) {
+            throw new RuntimeException(e);
+        }
+         */
+    }
+
+
 
     // TODO check for historian
 
