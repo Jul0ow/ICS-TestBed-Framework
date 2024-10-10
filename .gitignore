@@ -1,4 +1,5 @@
 *.zip
+*.gz
 *.class
 .vagrant/
 *.swp

@@ -5,10 +5,7 @@ import com.digitalpetri.modbus.client.NettyTcpClientTransport;
 import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
 import com.digitalpetri.modbus.exceptions.ModbusResponseException;
 import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
-import com.digitalpetri.modbus.pdu.ReadHoldingRegistersRequest;
-import com.digitalpetri.modbus.pdu.ReadHoldingRegistersResponse;
-import com.digitalpetri.modbus.pdu.WriteSingleRegisterRequest;
-import com.digitalpetri.modbus.pdu.WriteSingleRegisterResponse;
+import com.digitalpetri.modbus.pdu.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -32,6 +29,7 @@ public class Plc {
         this.description = "";
     }
 
+    /* Write operations */
     public WriteSingleRegisterResponse writeSingleRegisterResponse(int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         var client = connect();
 
@@ -46,6 +44,22 @@ public class Plc {
         return writeSingleRegisterResponse;
     }
 
+    public WriteSingleCoilResponse writeSingleCoil(int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var client = connect();
+
+        WriteSingleCoilRequest request = new WriteSingleCoilRequest(address, value);
+
+        LOGGER.info("Sending readCoilsRequest: " + request);
+
+        WriteSingleCoilResponse response = client.writeSingleCoil(
+                1,
+                request
+        );
+        return response;
+    }
+
+    /* Read operations */
+
     public ReadHoldingRegistersResponse readHoldingRegister(int address, int quantity) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         var client = connect();
 
@@ -58,6 +72,20 @@ public class Plc {
                 request
         );
 
+        return response;
+    }
+
+    public ReadCoilsResponse readCoils(int address, int quantity) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var client = connect();
+
+        ReadCoilsRequest request = new ReadCoilsRequest(address, quantity);
+
+        LOGGER.info("Sending readCoilsRequest: " + request);
+
+        ReadCoilsResponse response = client.readCoils(
+                1,
+                request
+        );
         return response;
     }
 

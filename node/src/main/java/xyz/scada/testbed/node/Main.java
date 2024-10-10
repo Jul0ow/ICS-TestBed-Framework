@@ -2,9 +2,6 @@ package xyz.scada.testbed.node;
 
 //import org.apache.commons.cli.*;
 
-import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
-import com.digitalpetri.modbus.exceptions.ModbusResponseException;
-import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.shell.standard.ShellComponent;
@@ -12,9 +9,7 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import xyz.scada.testbed.node.hmi.HMI;
 import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
-import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
 
-import java.io.Console;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,20 +66,6 @@ public class Main {
 
 
     // TODO hmi to Modbus
-    /*
-    @ShellMethod(value = "Test hmi", group = "MHI", prefix = "")
-    public void testHmi(@ShellOption() String dest)
-    {
-        if (hmi == null)
-            hmi = new HMI();
-
-        try {
-            hmi.readHoldingRegisters(dest);
-        } catch (Exception e) {
-            LOGGER.warning(e.getMessage());
-        }
-    }
-     */
 
     @ShellMethod(value = "Add a new plc to the hmi", group = "MHI", prefix = "")
     public void addPlc(@ShellOption() String name, @ShellOption() String ipAddr, @ShellOption(defaultValue = "502") String port, @ShellOption(defaultValue = "") String description) {
@@ -98,6 +79,19 @@ public class Main {
         }
     }
 
+    @ShellMethod(value = "Remove an existing plc to the hmi", group = "MHI", prefix = "")
+    public void removePlc(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.removePlc(name);
+        } catch (Exception e) {
+            System.err.println("Failed to add the plc: " + e.getMessage());
+        }
+    }
+
+
     @ShellMethod(value = "Print all the plc addeed to the hmi", group = "MHI", prefix = "")
     public void printPlc() {
         if (hmi == null)
@@ -106,17 +100,33 @@ public class Main {
         System.out.println(hmi.toString());
     }
 
+    /* Write operations */
+
     @ShellMethod(value = "Write a single register to the given plc at the given address and value", group = "MHI", prefix = "")
     public void writeSingleRegister(@ShellOption() String name, @ShellOption(help = "The register address") String address, @ShellOption(help = "The value") String value) {
         if (hmi == null)
             hmi = new HMI();
 
         try {
-            hmi.writeSingleRegisterResponse(name, Integer.parseInt(address), Integer.parseInt(value));
+            hmi.writeSingleRegister(name, Integer.parseInt(address), Integer.parseInt(value));
         } catch (Exception e) {
             System.err.println("Failed to write: " + e.getMessage());
         }
     }
+
+    @ShellMethod(value = "Write a single coil to the given plc at the given address with the given value", group = "MHI", prefix = "")
+    public void writeSingleCoil(@ShellOption() String name, @ShellOption(help = "The register address") String address, @ShellOption(help = "The value, 0 or 1 (if greater than 1 it will be put to 1)") String value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.writeSingleCoil(name, Integer.parseInt(address), Integer.parseInt(value));
+        } catch (Exception e) {
+            System.err.println("Failed to write coil: " + e.getMessage());
+        }
+    }
+
+    /* Read operations */
 
     @ShellMethod(value = "Read a register to the given plc at the given address with the given quantity", group = "MHI", prefix = "")
     public void readHoldingRegister(@ShellOption() String name, @ShellOption(help = "The register address") String address, @ShellOption(help = "The quantity to read") String quantity) {
@@ -126,10 +136,21 @@ public class Main {
         try {
             hmi.readHoldingRegisters(name, Integer.parseInt(address), Integer.parseInt(quantity));
         } catch (Exception e) {
-            System.err.println("Failed to read: " + e.getMessage());
+            System.err.println("Failed to read register: " + e.getMessage());
         }
     }
 
+    @ShellMethod(value = "Read the given quantity of coils in the given plc at the given address", group = "MHI", prefix = "")
+    public void readCoils(@ShellOption() String name, @ShellOption(help = "The first coil address") String address, @ShellOption(help = "The quantity to read") String quantity) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.readCoils(name, Integer.parseInt(address), Integer.parseInt(quantity));
+        } catch (Exception e) {
+            System.err.println("Failed to read coils: " + e.getMessage());
+        }
+    }
 
     // TODO check for historian
 

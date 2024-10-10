@@ -1,18 +1,13 @@
 package xyz.scada.testbed.node.hmi;
 
-import com.digitalpetri.modbus.client.ModbusTcpClient;
-import com.digitalpetri.modbus.client.NettyTcpClientTransport;
 import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
 import com.digitalpetri.modbus.exceptions.ModbusResponseException;
 import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
-import com.digitalpetri.modbus.pdu.*;
-import xyz.scada.testbed.node.ModBusTCP;
 import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
 import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
 import xyz.scada.testbed.node.hmi.plc.Plc;
 
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HMI {
@@ -39,14 +34,47 @@ public class HMI {
         LOGGER.info("Add plc: " + plc);
     }
 
+    public void removePlc(String plcName) throws PlcNotPresent {
+        var plcRemoved = plcs.remove(plcName);
+        if (plcRemoved == null)
+            throw new PlcNotPresent(plcName);
+        LOGGER.info("Plc: " + plcRemoved + " removed");
+        System.out.println("Successfully removed plc named: " + plcName);
+    }
+
+
+    /* Read operations */
+
+    /**
+     *
+     * @param plcName the name of the plc where the date will be read
+     * @param address the address of the register to read
+     * @param quantity the quantity of bytes to read
+     * @throws ModbusExecutionException
+     * @throws ModbusTimeoutException
+     * @throws ModbusResponseException
+     * @throws PlcNotPresent if plcName match any plc name's present in the hmi
+     */
     public void readHoldingRegisters(String plcName, int address, int quantity) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
         var response = getPlc(plcName).readHoldingRegister(address,quantity);
         System.out.println(response);
     }
 
-    public void writeSingleRegisterResponse(String plcName, int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
+    public void readCoils(String plcName, int address, int quantity) throws PlcNotPresent, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var response = getPlc(plcName).readCoils(address, quantity);
+        System.out.println(response);
+    }
+
+    /* Write operations */
+
+    public void writeSingleRegister(String plcName, int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
         getPlc(plcName).writeSingleRegisterResponse(address, value);
     }
+    public void writeSingleCoil(String plcName, int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
+        getPlc(plcName).writeSingleCoil(address, value);
+    }
+
+
     
     @Override
     public String toString() {
