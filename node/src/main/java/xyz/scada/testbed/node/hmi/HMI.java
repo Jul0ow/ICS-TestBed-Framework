@@ -47,7 +47,7 @@ public class HMI {
 
     /**
      *
-     * @param plcName the name of the plc where the date will be read
+     * @param plcName the name of the plc where the data will be read
      * @param address the address of the register to read
      * @param quantity the quantity of bytes to read
      * @throws ModbusExecutionException
@@ -60,6 +60,16 @@ public class HMI {
         System.out.println(response);
     }
 
+    /**
+     *
+     * @param plcName the name of the plc where the data will be read
+     * @param address the address of the first coil to read
+     * @param quantity the quantity of bytes to read
+     * @throws PlcNotPresent if plcName match any plc name's present in the hmi
+     * @throws ModbusExecutionException
+     * @throws ModbusTimeoutException
+     * @throws ModbusResponseException
+     */
     public void readCoils(String plcName, int address, int quantity) throws PlcNotPresent, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         var response = getPlc(plcName).readCoils(address, quantity);
         System.out.println(response);
@@ -67,9 +77,30 @@ public class HMI {
 
     /* Write operations */
 
+    /**
+     *
+     * @param plcName the name of the plc where the data will be written
+     * @param address the address of the register to write
+     * @param value the value to be put in the register
+     * @throws ModbusExecutionException
+     * @throws ModbusTimeoutException
+     * @throws ModbusResponseException
+     * @throws PlcNotPresent if plcName match any plc name's present in the hmi
+     */
     public void writeSingleRegister(String plcName, int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
         getPlc(plcName).writeSingleRegisterResponse(address, value);
     }
+
+    /**
+     *
+     * @param plcName the name of the plc where the data will be written
+     * @param address the address of the coil to write
+     * @param value the value to be put in the coil
+     * @throws ModbusExecutionException
+     * @throws ModbusTimeoutException
+     * @throws ModbusResponseException
+     * @throws PlcNotPresent if plcName match any plc name's present in the hmi
+     */
     public void writeSingleCoil(String plcName, int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
         getPlc(plcName).writeSingleCoil(address, value);
     }
