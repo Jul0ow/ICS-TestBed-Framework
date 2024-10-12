@@ -2,6 +2,9 @@ package xyz.scada.testbed.node;
 
 //import org.apache.commons.cli.*;
 
+import com.digitalpetri.modbus.exceptions.UnknownUnitIdException;
+import com.digitalpetri.modbus.server.ModbusServices;
+import com.digitalpetri.modbus.server.ProcessImage;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.shell.standard.ShellComponent;
@@ -9,7 +12,10 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import xyz.scada.testbed.node.hmi.HMI;
 import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
+import xyz.scada.testbed.node.plc.ModBusTCP;
+import xyz.scada.testbed.node.plc.ProgressionModbusService;
 
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,6 +34,7 @@ public class Main {
 
     //    Current Running States
     ModBusTCP modbusTCP = null;
+    ModbusServices modbusServices = null;
     HMI hmi = null;
 
 
@@ -44,8 +51,10 @@ public class Main {
         SpringApplication.run(Main.class, args);
     }
 
-    @ShellMethod(value = "Configure TCP Modbus Server.", group = "TCP")
-    public void tcp() {
+
+
+    @ShellMethod(value = "Select PLC type.", group = "TCP")
+    public void plcType(@ShellOption(help = "Possible values are 'Progression'") String type) {
         // if (hmi != null) {
         //     System.out.println("Error: Currently configured as a HMI.");
         // } else if (hist != null) {
@@ -56,7 +65,21 @@ public class Main {
         //     modbusTCP = new ModBusTCP();
         // }
         if (modbusTCP == null) {
-            modbusTCP = new ModBusTCP();
+            if (type.equals("Progression")) {
+                ProcessImage image = new ProcessImage();
+                try {
+                    modbusTCP = new ModBusTCP(new ProgressionModbusService() {
+                        @Override
+                        protected Optional<ProcessImage> getProcessImage(int i) {
+                            return Optional.of(image);
+                        }
+                    });
+                } catch (UnknownUnitIdException e) {
+                    System.out.println("Could not create ProgressionModbusService.");
+                }
+            }
+            else
+                System.out.println("Error: Invalid PLC type.");
             mode = "TCP";
         }
     }
@@ -67,7 +90,7 @@ public class Main {
 
     // TODO hmi to Modbus
 
-    @ShellMethod(value = "Add a new plc to the hmi", group = "MHI", prefix = "")
+    @ShellMethod(value = "Add a new plc to the hmi", group = "HMI", prefix = "")
     public void addPlc(@ShellOption() String name, @ShellOption() String ipAddr, @ShellOption(defaultValue = "502") String port, @ShellOption(defaultValue = "") String description) {
         if (hmi == null)
             hmi = new HMI();
@@ -79,7 +102,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Remove an existing plc to the hmi", group = "MHI", prefix = "")
+    @ShellMethod(value = "Remove an existing plc to the hmi", group = "HMI", prefix = "")
     public void removePlc(@ShellOption() String name) {
         if (hmi == null)
             hmi = new HMI();
@@ -92,7 +115,7 @@ public class Main {
     }
 
 
-    @ShellMethod(value = "Print all the plc addeed to the hmi", group = "MHI", prefix = "")
+    @ShellMethod(value = "Print all the plc added to the hmi", group = "HMI", prefix = "")
     public void printPlc() {
         if (hmi == null)
             hmi = new HMI();
@@ -102,7 +125,7 @@ public class Main {
 
     /* Write operations */
 
-    @ShellMethod(value = "Write a single register to the given plc at the given address and value", group = "MHI", prefix = "")
+    @ShellMethod(value = "Write a single register to the given plc at the given address and value", group = "HMI", prefix = "")
     public void writeSingleRegister(@ShellOption() String name, @ShellOption(help = "The register address") String address, @ShellOption(help = "The value") String value) {
         if (hmi == null)
             hmi = new HMI();
@@ -114,7 +137,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Write a single coil to the given plc at the given address with the given value", group = "MHI", prefix = "")
+    @ShellMethod(value = "Write a single coil to the given plc at the given address with the given value", group = "HMI", prefix = "")
     public void writeSingleCoil(@ShellOption() String name, @ShellOption(help = "The register address") String address, @ShellOption(help = "The value, 0 or 1 (if greater than 1 it will be put to 1)") String value) {
         if (hmi == null)
             hmi = new HMI();
@@ -128,7 +151,7 @@ public class Main {
 
     /* Read operations */
 
-    @ShellMethod(value = "Read a register to the given plc at the given address with the given quantity", group = "MHI", prefix = "")
+    @ShellMethod(value = "Read a register to the given plc at the given address with the given quantity", group = "HMI", prefix = "")
     public void readHoldingRegister(@ShellOption() String name, @ShellOption(help = "The register address") String address, @ShellOption(help = "The quantity to read") String quantity) {
         if (hmi == null)
             hmi = new HMI();
@@ -140,7 +163,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Read the given quantity of coils in the given plc at the given address", group = "MHI", prefix = "")
+    @ShellMethod(value = "Read the given quantity of coils in the given plc at the given address", group = "HMI", prefix = "")
     public void readCoils(@ShellOption() String name, @ShellOption(help = "The first coil address") String address, @ShellOption(help = "The quantity to read") String quantity) {
         if (hmi == null)
             hmi = new HMI();

@@ -1,19 +1,20 @@
-package xyz.scada.testbed.node;
+package xyz.scada.testbed.node.plc;
 
 import com.digitalpetri.modbus.server.*;
 
-import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ModBusTCP {
+    private final ModbusServices service;
 
-    public ModBusTCP() {
+    public ModBusTCP(ModbusServices service) {
+        this.service = service;
     }
 
-    private static Logger LOGGER = null;
+    protected static Logger LOGGER = null;
 
     static {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%n");
@@ -26,19 +27,12 @@ public class ModBusTCP {
             cfg.port = port;
         });
 
-        ProcessImage processImage = new ProcessImage();
-        ModbusServices services = new ReadWriteModbusServices() {
-            @Override
-            protected Optional<ProcessImage> getProcessImage(int i) {
-                return Optional.of(processImage);
-            }
-        };
-        ModbusTcpServer server = ModbusTcpServer.create(serverTransport, services);
+        ModbusTcpServer server = ModbusTcpServer.create(serverTransport, service);
 
         try {
             server.start();
-            LOGGER.log(Level.INFO, " TCP Server started!");
-            System.out.println("TCP Started.");
+            LOGGER.log(Level.INFO, " ProgressionPLC Server started!");
+            System.out.println("ProgressionPLC Started.");
         } catch (ExecutionException | InterruptedException e) {
             LOGGER.log(Level.SEVERE, "Unable to start listening: {0}", e.getMessage());
         }
