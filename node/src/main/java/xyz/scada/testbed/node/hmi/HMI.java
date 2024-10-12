@@ -4,8 +4,10 @@ import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
 import com.digitalpetri.modbus.exceptions.ModbusResponseException;
 import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
+import xyz.scada.testbed.node.hmi.exceptions.PlcBadType;
 import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
 import xyz.scada.testbed.node.hmi.plc.Plc;
+import xyz.scada.testbed.node.hmi.plc.PlcProgression;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -21,8 +23,20 @@ public class HMI {
     }
 
 
-    public void addPlc(String name, String ipAddr, int port, String description) throws PlcAlreadyPresent {
-        var plc = new Plc(ipAddr, port, name, description);
+    public void addPlc(String name, String ipAddr, int port, String type,String description) throws Exception {
+        Plc plc;
+        System.out.println(type);
+        switch (type)
+        {
+            case "plc":
+                plc = new Plc(ipAddr, port, name, description);
+                break;
+            case "progression":
+                plc = new PlcProgression(ipAddr, port, name, description);
+                break;
+            default:
+                throw new Exception("No type found for " + type);
+        }
 
         // Test if not already present
         if (plcs.get(name) != null)
@@ -42,6 +56,13 @@ public class HMI {
         System.out.println("Successfully removed plc named: " + plcName);
     }
 
+
+    public List<Boolean> getCheckpoints(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcProgression))
+            throw new PlcBadType(plcName);
+        return ((PlcProgression) plc).getCheckpoints();
+    }
 
     /* Read operations */
 

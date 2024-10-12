@@ -16,6 +16,7 @@ import xyz.scada.testbed.node.plc.ModBusTCP;
 import xyz.scada.testbed.node.plc.ProgressionModbusService;
 
 import java.util.Optional;
+import java.io.Console;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -90,14 +91,17 @@ public class Main {
 
     // TODO hmi to Modbus
 
-    @ShellMethod(value = "Add a new plc to the hmi", group = "HMI", prefix = "")
-    public void addPlc(@ShellOption() String name, @ShellOption() String ipAddr, @ShellOption(defaultValue = "502") String port, @ShellOption(defaultValue = "") String description) {
+    @ShellMethod(value = "Add a new plc to the hmi", group = "MHI", prefix = "")
+    public void addPlc(@ShellOption() String name, @ShellOption() String ipAddr,
+                       @ShellOption(defaultValue = "502") String port,
+                       @ShellOption(defaultValue = "plc", help = "supported type are plc (default one), progression") String type,
+                       @ShellOption(defaultValue = "") String description) {
         if (hmi == null)
             hmi = new HMI();
 
         try {
-            hmi.addPlc(name, ipAddr, Integer.parseInt(port), description);
-        } catch (PlcAlreadyPresent e) {
+            hmi.addPlc(name, ipAddr, Integer.parseInt(port), type, description);
+        } catch (Exception e) {
             System.err.println("Failed to add the plc: " + e.getMessage());
         }
     }
@@ -174,6 +178,19 @@ public class Main {
             System.err.println("Failed to read coils: " + e.getMessage());
         }
     }
+
+    @ShellMethod(value = "Gets the checkpoint from the given progression Plc", group = "MHI", prefix = "")
+    public void getCheckpoints(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getCheckpoints(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get checkpoints: " + e.getMessage());
+        }
+    }
+
 
     // TODO check for historian
 

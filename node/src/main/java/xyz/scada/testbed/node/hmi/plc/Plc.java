@@ -41,6 +41,7 @@ public class Plc {
                 1,
                 request);
 
+        client.disconnect();
         return writeSingleRegisterResponse;
     }
 
@@ -49,12 +50,14 @@ public class Plc {
 
         WriteSingleCoilRequest request = new WriteSingleCoilRequest(address, value);
 
-        LOGGER.info("Sending readCoilsRequest: " + request);
+        LOGGER.info("Sending writeSingleCoilRequest: " + request);
 
         WriteSingleCoilResponse response = client.writeSingleCoil(
                 1,
                 request
         );
+
+        client.disconnect();
         return response;
     }
 
@@ -72,6 +75,7 @@ public class Plc {
                 request
         );
 
+        client.disconnect();
         return response;
     }
 
@@ -86,6 +90,23 @@ public class Plc {
                 1,
                 request
         );
+        client.disconnect();
+        return response;
+    }
+
+    public ReadDiscreteInputsResponse readDiscreteInput(int address, int quantity) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var client = connect();
+
+        ReadDiscreteInputsRequest request = new ReadDiscreteInputsRequest(address, quantity);
+
+        LOGGER.info("Sending readDiscreteInputsRequest: " + request);
+
+        ReadDiscreteInputsResponse response = client.readDiscreteInputs(
+                1,
+                request
+        );
+
+        client.disconnect();
         return response;
     }
 
