@@ -23,7 +23,7 @@ This allows researchers to build testbeds that can be configured to replicate re
 
 Clone the repository and install the required dependencies:
 
-	git clone --recurse-submodules git@github.com:PMaynard/ICS-TestBed-Framework.git
+	git clone --recurse-submodules git@github.com:Jul0ow/ICS-TestBed-Framework.git
  	sudo apt install openjdk-17-jdk maven
 
 Build: 
@@ -63,9 +63,9 @@ vagrant plugin install vagrant-vmware-desktop
 ```
 
 
-## [OPTIONAL] Create VM Image
+## Create VM Image
 
-This is an optional development step. It builds a virtual machine image, pre-configured to run the testbed nodes. If you don't want to create the latest version, the default option is get a stable image from Vagrant's image repository which stays in step with the master branch. 
+This is a development step. It builds a virtual machine image, pre-configured to run the testbed nodes. If you don't want to create the latest version, the default option is get a stable image from Vagrant's image repository which stays in step with the master branch. 
 
 [Packer](https://www.packer.io/) is used to create a virtual machine image suitable for VMware and Vagrant:
 
