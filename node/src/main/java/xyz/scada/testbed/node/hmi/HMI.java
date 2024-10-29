@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 public class HMI {
     private static Logger LOGGER = null;
 
-    private Map<String, Plc> plcs = new Hashtable<>();
+    private final Map<String, Plc> plcs = new Hashtable<>();
 
     public HMI() {
         LOGGER = Logger.getLogger(this.getClass().getName());
@@ -26,17 +26,11 @@ public class HMI {
     public void addPlc(String name, String ipAddr, int port, String type,String description) throws Exception {
         Plc plc;
         System.out.println(type);
-        switch (type)
-        {
-            case "plc":
-                plc = new Plc(ipAddr, port, name, description);
-                break;
-            case "progression":
-                plc = new PlcProgression(ipAddr, port, name, description);
-                break;
-            default:
-                throw new Exception("No type found for " + type);
-        }
+        plc = switch (type) {
+            case "plc" -> new Plc(ipAddr, port, name, description);
+            case "progression" -> new PlcProgression(ipAddr, port, name, description);
+            default -> throw new Exception("No type found for " + type);
+        };
 
         // Test if not already present
         if (plcs.get(name) != null)
@@ -62,6 +56,13 @@ public class HMI {
         if (!(plc instanceof PlcProgression))
             throw new PlcBadType(plcName);
         return ((PlcProgression) plc).getCheckpoints();
+    }
+
+    public void setStart(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcProgression))
+            throw new PlcBadType(plcName);
+        ((PlcProgression) plc).setStart();
     }
 
     /* Read operations */
@@ -130,12 +131,12 @@ public class HMI {
     
     @Override
     public String toString() {
-        String res = "HMI:\n";
+        StringBuilder res = new StringBuilder("HMI:\n");
         for (var plc : plcs.values())
         {
-            res += "\t" + plc + "\n";
+            res.append("\t").append(plc).append("\n");
         }
-        return res;
+        return res.toString();
     }
 
     private Plc getPlc(String plcName) throws PlcNotPresent {

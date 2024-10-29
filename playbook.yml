@@ -13,15 +13,10 @@
       shell: JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 /usr/share/maven/bin/mvn package
       args:
         chdir: "/vagrant/"
-      when: "'rtu' in ansible_hostname or 'hmi' in ansible_hostname or 'tcp' in ansible_hostname"
 
-    - name: Startup RTU
-      shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/rtu.cmd ENTER"
-      when: "'rtu' in ansible_hostname"
-
-    - name: Startup TCP
-      shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/tcp.cmd ENTER"
-      when: "'tcp' in ansible_hostname"
+    - name: Startup Progression PLC
+      shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/progression.cmd ENTER"
+      when: "'progression' in ansible_hostname"
 
     - name: Startup HMI
       shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/hmi.cmd ENTER"

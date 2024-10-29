@@ -46,7 +46,7 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
     private static final int DURATION = 4 * 60 + 52; // Durée du trajet en secondes
     // TODO : add IP addresses for brakes
 
-    private static Logger LOGGER = null;
+    private static final Logger LOGGER;
 
     static {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%n");
@@ -76,22 +76,23 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
 
             @Override
             public void onDiscreteInputsModified(List<ProcessImage.Modification.DiscreteInputModification> list) {
-
+                LOGGER.info("Discrete inputs modified.");
             }
 
             @Override
             public void onHoldingRegistersModified(List<ProcessImage.Modification.HoldingRegisterModification> list) {
-
+                LOGGER.info("Holding registers modified.");
             }
 
             @Override
             public void onInputRegistersModified(List<ProcessImage.Modification.InputRegisterModification> list) {
-
+                LOGGER.info("Input registers modified.");
             }
         });
     }
 
     private void resetCheckpoints(ProcessImage processImage) {
+        LOGGER.info("Resetting checkpoints.");
         processImage.with(tx -> tx.writeDiscreteInputs(coilMap -> {
             coilMap.remove(DataAddresses.CHECKPOINT_1.getAddress());
             coilMap.remove(DataAddresses.CHECKPOINT_2.getAddress());
@@ -102,9 +103,8 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
     }
 
     private void setCheckpoint(ProcessImage processImage, DataAddresses checkpoint) {
-        processImage.with(tx -> tx.writeDiscreteInputs(coilMap -> {
-            coilMap.put(checkpoint.getAddress(), true);
-        }));
+        LOGGER.info("Checkpoint " + checkpoint + " reached.");
+        processImage.with(tx -> tx.writeDiscreteInputs(coilMap -> coilMap.put(checkpoint.getAddress(), true)));
     }
 
     public void launchRide() throws UnknownUnitIdException {
@@ -115,7 +115,6 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
         }
 
         ProcessImage processImage = getProcessImage(0).orElseThrow(() -> new UnknownUnitIdException(0));
-        resetCheckpoints(processImage);
 
         LOGGER.info("Starting ride.");
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -142,8 +141,9 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
 
             if (elapsedTime >= DURATION) {
                 elapsedTime = 0;
+                resetCheckpoints(processImage);
                 executor.shutdown();
             }
-        }, 0, 1, java.util.concurrent.TimeUnit.SECONDS);
+        }, 10, 1, java.util.concurrent.TimeUnit.SECONDS);
     }
 }

@@ -15,12 +15,10 @@ Vagrant.configure("2") do |config|
     ansible.compatibility_mode = "2.0"
   end
   
-  (1..1).each do |i|
-    config.vm.define "tcp-#{i}" do |node|
-      node.vm.hostname = "tcp"
-      node.vm.box = "testbed-node"
-      node.vm.network "private_network", ip: "10.50.50.10#{i}"
-    end
+  config.vm.define "plc-progression" do |node|
+    node.vm.hostname = "tcp"
+    node.vm.box = "testbed-node"
+    node.vm.network "private_network", ip: "10.50.50.100"
   end
 
   config.vm.define "hmi" do |hmi|

@@ -3,7 +3,6 @@ package xyz.scada.testbed.node;
 //import org.apache.commons.cli.*;
 
 import com.digitalpetri.modbus.exceptions.UnknownUnitIdException;
-import com.digitalpetri.modbus.server.ModbusServices;
 import com.digitalpetri.modbus.server.ProcessImage;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,12 +10,10 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import xyz.scada.testbed.node.hmi.HMI;
-import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
 import xyz.scada.testbed.node.plc.ModBusTCP;
 import xyz.scada.testbed.node.plc.ProgressionModbusService;
 
 import java.util.Optional;
-import java.io.Console;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,7 +23,7 @@ import java.util.logging.Logger;
 public class Main {
 
     //    Global Default States
-    private static Logger LOGGER = null;
+    private static final Logger LOGGER;
 
     private static final String DEFAULT_LISTEN = "127.0.0.1";
 
@@ -35,7 +32,6 @@ public class Main {
 
     //    Current Running States
     ModBusTCP modbusTCP = null;
-    ModbusServices modbusServices = null;
     HMI hmi = null;
 
 
@@ -53,18 +49,8 @@ public class Main {
     }
 
 
-
     @ShellMethod(value = "Select PLC type.", group = "TCP")
     public void plcType(@ShellOption(help = "Possible values are 'Progression'") String type) {
-        // if (hmi != null) {
-        //     System.out.println("Error: Currently configured as a HMI.");
-        // } else if (hist != null) {
-        //     System.out.println("Error: Currently configured as a Historian.");
-        // } else if (rtu != null) {
-        //     System.out.println("Error: Currently configured as an RTU.");
-        // } else if (modbusTCP == null) {
-        //     modbusTCP = new ModBusTCP();
-        // }
         if (modbusTCP == null) {
             if (type.equals("Progression")) {
                 ProcessImage image = new ProcessImage();
@@ -78,8 +64,7 @@ public class Main {
                 } catch (UnknownUnitIdException e) {
                     System.out.println("Could not create ProgressionModbusService.");
                 }
-            }
-            else
+            } else
                 System.out.println("Error: Invalid PLC type.");
             mode = "TCP";
         }
@@ -91,7 +76,7 @@ public class Main {
 
     // TODO hmi to Modbus
 
-    @ShellMethod(value = "Add a new plc to the hmi", group = "MHI", prefix = "")
+    @ShellMethod(value = "Add a new plc to the hmi", group = "HMI", prefix = "")
     public void addPlc(@ShellOption() String name, @ShellOption() String ipAddr,
                        @ShellOption(defaultValue = "502") String port,
                        @ShellOption(defaultValue = "plc", help = "supported type are plc (default one), progression") String type,
@@ -124,7 +109,7 @@ public class Main {
         if (hmi == null)
             hmi = new HMI();
 
-        System.out.println(hmi.toString());
+        System.out.println(hmi);
     }
 
     /* Write operations */
@@ -179,7 +164,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Gets the checkpoint from the given progression Plc", group = "MHI", prefix = "")
+    @ShellMethod(value = "Gets the checkpoint from the given progression Plc", group = "HMI", prefix = "")
     public void getCheckpoints(@ShellOption() String name) {
         if (hmi == null)
             hmi = new HMI();
@@ -191,6 +176,18 @@ public class Main {
         }
     }
 
+    @ShellMethod(value = "Set the start of the progression Plc", group = "HMI", prefix = "")
+    public void setStart(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setStart(name);
+        } catch (Exception e) {
+            System.err.println("Failed to set start: " + e.getMessage());
+        }
+    }
+
 
     // TODO check for historian
 
@@ -198,13 +195,9 @@ public class Main {
 
     @ShellMethod(value = "Set listen interface.", group = "TCP", prefix = "")
     public void tcpListen(@ShellOption(defaultValue = "127.0.0.1") String listen) {
-        try {
-            if (!listen.equals(DEFAULT_LISTEN)) this.listen = listen;
+        if (!listen.equals(DEFAULT_LISTEN))
+            this.listen = listen;
 
-        } catch (NumberFormatException ex) {
-            System.out.println("Error: Expecting an integer.");
-            LOGGER.log(Level.WARNING, ex.toString(), ex);
-        }
     }
 
     @ShellMethod(value = "Set Modbus Port.", group = "TCP", prefix = "")
