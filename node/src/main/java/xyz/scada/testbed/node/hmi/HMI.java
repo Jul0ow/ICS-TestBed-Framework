@@ -4,6 +4,7 @@ import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
 import com.digitalpetri.modbus.exceptions.ModbusResponseException;
 import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
+import xyz.scada.testbed.node.hmi.exceptions.PlcBadArgument;
 import xyz.scada.testbed.node.hmi.exceptions.PlcBadType;
 import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
 import xyz.scada.testbed.node.hmi.plc.*;
@@ -30,6 +31,7 @@ public class HMI {
             case "progression" -> new PlcProgression(ipAddr, port, name, description);
             case "brake" -> new PlcBrake(ipAddr, port, name, description);
             case "security" -> new PlcSecurity(ipAddr, port, name, description);
+            case "light" -> new PlcLight(ipAddr, port, name, description);
             default -> throw new Exception("No type found for " + type);
         };
 
@@ -84,10 +86,12 @@ public class HMI {
         return ((PlcBrake) plc).getActivationPercent();
     }
 
-    public void setBrake(String plcName, int brakeValue) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+    public void setBrake(String plcName, int brakeValue) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcBadArgument {
         var plc = getPlc(plcName);
         if (!(plc instanceof PlcBrake bPlc))
             throw new PlcBadType(plcName);
+        if (brakeValue < 0 || brakeValue > 100)
+            throw new PlcBadArgument("Expected a percentage ([0,100]) but got " + brakeValue);
         bPlc.setBrake(brakeValue);
     }
 
@@ -156,6 +160,23 @@ public class HMI {
         if (!(plc instanceof PlcEngine ePlc))
             throw new PlcBadType(plcName);
         ePlc.setRequestedEnginPower(value);
+    }
+
+
+    /* Light Plc */
+
+    public int getLightStatus(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcLight lPlc))
+            throw new PlcBadType(plcName);
+        return lPlc.getLightStatus();
+    }
+
+    public void setLight(String plcName, boolean isOn) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcLight lPlc))
+            throw new PlcBadType(plcName);
+        lPlc.setLight(isOn);
     }
 
     /* IO Read operations */
