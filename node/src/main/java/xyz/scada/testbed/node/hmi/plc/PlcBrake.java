@@ -35,7 +35,7 @@ public class PlcBrake extends Plc {
         ReadInputRegistersResponse response = readInputRegister(Address.IR_BREAK_PRESSURE.getValue(), 1);
 
         byte[] registers = response.registers();
-        int res = registers[0] << 8 | registers[1];
+        int res = getInt16FromByteArray(registers);
         System.out.println(response);
 
         return res;
@@ -43,7 +43,7 @@ public class PlcBrake extends Plc {
 
     public int getActivationPercent() throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         ReadInputRegistersResponse response = readInputRegister(Address.IR_ACTIVATION_PERCENT.getValue(), 1);
-        int res = response.registers()[0];
+        int res = getInt16FromByteArray(response.registers());
         System.out.println(response);
 
         return res;
