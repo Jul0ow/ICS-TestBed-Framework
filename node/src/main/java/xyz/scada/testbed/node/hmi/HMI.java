@@ -6,10 +6,7 @@ import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
 import xyz.scada.testbed.node.hmi.exceptions.PlcBadType;
 import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
-import xyz.scada.testbed.node.hmi.plc.Plc;
-import xyz.scada.testbed.node.hmi.plc.PlcBrake;
-import xyz.scada.testbed.node.hmi.plc.PlcProgression;
-import xyz.scada.testbed.node.hmi.plc.PlcSecurity;
+import xyz.scada.testbed.node.hmi.plc.*;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -32,6 +29,7 @@ public class HMI {
             case "plc" -> new Plc(ipAddr, port, name, description);
             case "progression" -> new PlcProgression(ipAddr, port, name, description);
             case "brake" -> new PlcBrake(ipAddr, port, name, description);
+            case "security" -> new PlcSecurity(ipAddr, port, name, description);
             default -> throw new Exception("No type found for " + type);
         };
 
@@ -136,6 +134,29 @@ public class HMI {
         sPlc.setSeatbelt(isLocked);
     }
 
+
+    /* Engine */
+
+    public int getEngineTemp(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcEngine ePlc))
+            throw new PlcBadType(plcName);
+        return ePlc.getEngineTemp();
+    }
+
+    public int getEngineRPM(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcEngine ePlc))
+            throw new PlcBadType(plcName);
+        return ePlc.getEngineRMP();
+    }
+
+    public void setEnginePower(String plcName, int value) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcEngine ePlc))
+            throw new PlcBadType(plcName);
+        ePlc.setRequestedEnginPower(value);
+    }
 
     /* IO Read operations */
 

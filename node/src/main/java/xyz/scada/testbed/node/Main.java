@@ -251,7 +251,7 @@ public class Main {
     }
 
     /* Security Plc operations */
-    @ShellMethod(value = "Get the fence status of the attraction from the given brake Plc", group = "HMI-Security", prefix = "")
+    @ShellMethod(value = "Get the fence status of the attraction from the given security Plc", group = "HMI-Security", prefix = "")
     public void getFenceStatus(@ShellOption() String name) {
         if (hmi == null)
             hmi = new HMI();
@@ -263,7 +263,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Set the fences from the given brake Plc, set it to true to close the fences and to false to open them", group = "HMI-Security", prefix = "")
+    @ShellMethod(value = "Set the fences from the given security Plc, set it to true to close the fences and to false to open them", group = "HMI-Security", prefix = "")
     public void setFence(@ShellOption() String name, @ShellOption(help = "true if the fence should be closed, false to open it", defaultValue = "true") Boolean value) {
         if (hmi == null)
             hmi = new HMI();
@@ -275,7 +275,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Get the seatbelt status of the attraction from the given brake Plc", group = "HMI-Security", prefix = "")
+    @ShellMethod(value = "Get the seatbelt status of the attraction from the given security Plc", group = "HMI-Security", prefix = "")
     public void getSeatbeltStatus(@ShellOption() String name) {
         if (hmi == null)
             hmi = new HMI();
@@ -287,7 +287,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Set the seatbelts from the given brake Plc, set it to true to lock the seatbelts and to false to open them", group = "HMI-Security", prefix = "")
+    @ShellMethod(value = "Set the seatbelts from the given security Plc, set it to true to lock the seatbelts and to false to open them", group = "HMI-Security", prefix = "")
     public void setSeatbelt(@ShellOption() String name, @ShellOption(help = "true if the seatbelts should be locked, false to open them", defaultValue = "true") Boolean value) {
         if (hmi == null)
             hmi = new HMI();
@@ -298,6 +298,45 @@ public class Main {
             System.err.println("Failed to set seatbelt: " + e.getMessage());
         }
     }
+
+    /* Engine Plc operations */
+
+    @ShellMethod(value = "Get the engine temperature of the engine from the given engine Plc", group = "HMI-Engine", prefix = "")
+    public void getEngineTemperature(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getEngineTemp(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get engine temperature: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Get the engine RPM of the engine from the given engine Plc", group = "HMI-Engine", prefix = "")
+    public void getEngineRPM(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getEngineRPM(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get engine RPM: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the power of the engine from the given engine Plc", group = "HMI-Engine", prefix = "")
+    public void setEnginePower(@ShellOption() String name, @ShellOption(help = "") int value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setEnginePower(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set engine RPM: " + e.getMessage());
+        }
+    }
+
 
     // TODO check for historian
 
