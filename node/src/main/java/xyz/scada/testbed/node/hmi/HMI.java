@@ -9,6 +9,7 @@ import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
 import xyz.scada.testbed.node.hmi.plc.Plc;
 import xyz.scada.testbed.node.hmi.plc.PlcBrake;
 import xyz.scada.testbed.node.hmi.plc.PlcProgression;
+import xyz.scada.testbed.node.hmi.plc.PlcSecurity;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -69,7 +70,7 @@ public class HMI {
     }
 
 
-    /* Brake */
+    /* Plc Brake */
 
     public int getBrakePressure(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         var plc = getPlc(plcName);
@@ -105,6 +106,36 @@ public class HMI {
             throw new PlcBadType(plcName);
         bPlc.setParkBrake(breaking);
     }
+
+    /* Plc Security */
+    public int getFenceStatus(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity))
+            throw new PlcBadType(plcName);
+        return ((PlcSecurity) plc).getFenceStatus();
+    }
+
+    public void setFence(String plcName, boolean isClose) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity sPlc))
+            throw new PlcBadType(plcName);
+        sPlc.setFence(isClose);
+    }
+
+    public int getSeatbeltStatus(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity))
+            throw new PlcBadType(plcName);
+        return ((PlcSecurity) plc).getSeatbeltStatus();
+    }
+
+    public void setSeatbelt(String plcName, boolean isLocked) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity sPlc))
+            throw new PlcBadType(plcName);
+        sPlc.setSeatbelt(isLocked);
+    }
+
 
     /* IO Read operations */
 
