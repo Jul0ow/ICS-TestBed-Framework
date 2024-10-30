@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
   end
   
   config.vm.define "plc-progression" do |node|
-    node.vm.hostname = "tcp"
+    node.vm.hostname = "plc-progression"
     node.vm.box = "testbed-node"
     node.vm.network "private_network", ip: "10.50.50.100"
   end
