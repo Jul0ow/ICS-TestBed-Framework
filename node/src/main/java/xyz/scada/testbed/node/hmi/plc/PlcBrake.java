@@ -3,9 +3,7 @@ package xyz.scada.testbed.node.hmi.plc;
 import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
 import com.digitalpetri.modbus.exceptions.ModbusResponseException;
 import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
-import com.digitalpetri.modbus.pdu.ReadHoldingRegistersRequest;
 import com.digitalpetri.modbus.pdu.ReadInputRegistersResponse;
-import com.digitalpetri.modbus.pdu.WriteSingleRegisterResponse;
 
 public class PlcBrake extends Plc {
 
@@ -35,7 +33,9 @@ public class PlcBrake extends Plc {
 
     public int getBrakePressure() throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         ReadInputRegistersResponse response = readInputRegister(Address.IR_BREAK_PRESSURE.getValue(), 1);
-        int res = response.registers()[0];
+
+        byte[] registers = response.registers();
+        int res = registers[0] << 8 | registers[1];
         System.out.println(response);
 
         return res;

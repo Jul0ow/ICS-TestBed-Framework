@@ -45,6 +45,8 @@ public class Plc {
         return writeSingleRegisterResponse;
     }
 
+
+
     public WriteSingleCoilResponse writeSingleCoil(int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         var client = connect();
 
