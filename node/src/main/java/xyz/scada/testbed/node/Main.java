@@ -188,6 +188,68 @@ public class Main {
         }
     }
 
+    /* Breaking plc operations */
+
+    @ShellMethod(value = "Gets the brake pressure from the given brake Plc", group = "HMI", prefix = "")
+    public void getBrakePressure(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getBrakePressure(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get brake pressure: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Gets the brake activation percent from the given brake Plc", group = "HMI", prefix = "")
+    public void getBrakeActivationPercent(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getActivationPercent(name) + "%");
+        } catch (Exception e) {
+            System.err.println("Failed to get brake activation percent: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the brake from the given brake Plc with the given value", group = "HMI", prefix = "")
+    public void setBrake(@ShellOption() String name, @ShellOption(help = "The value for the brake to be set") Integer value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setBrake(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set brake: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the emergency brake from the given brake Plc, set it to true to activate emergency braking and to false to deactivate it", group = "HMI", prefix = "")
+    public void setEmergencyBrake(@ShellOption() String name, @ShellOption(help = "true if the emergency breaking should be activated, false to deactivate it", defaultValue = "true") Boolean value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setEmergencyBrake(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set emergency brake: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the parking brake from the given brake Plc, set it to true to activate parking brake and to false to deactivate it", group = "HMI", prefix = "")
+    public void setParkingBrake(@ShellOption() String name, @ShellOption(help = "true if the emergency breaking should be activated, false to deactivate it", defaultValue = "true") Boolean value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setParkBrake(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set parking brake: " + e.getMessage());
+        }
+    }
+
 
     // TODO check for historian
 
