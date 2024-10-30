@@ -177,7 +177,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Gets the checkpoint from the given progression Plc", group = "HMI", prefix = "")
+    @ShellMethod(value = "Gets the checkpoint from the given progression Plc", group = "HMI-Progression", prefix = "")
     public void getCheckpoints(@ShellOption() String name) {
         if (hmi == null)
             hmi = new HMI();
@@ -189,7 +189,7 @@ public class Main {
         }
     }
 
-    @ShellMethod(value = "Set the start of the progression Plc", group = "HMI", prefix = "")
+    @ShellMethod(value = "Set the start of the progression Plc", group = "HMI-Progression", prefix = "")
     public void setStart(@ShellOption() String name) {
         if (hmi == null)
             hmi = new HMI();
@@ -201,6 +201,116 @@ public class Main {
         }
     }
 
+    /* Breaking plc operations */
+
+    @ShellMethod(value = "Gets the brake pressure from the given brake Plc", group = "HMI-Brake", prefix = "")
+    public void getBrakePressure(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getBrakePressure(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get brake pressure: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Gets the brake activation percent from the given brake Plc", group = "HMI-Brake", prefix = "")
+    public void getBrakeActivationPercent(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getActivationPercent(name) + "%");
+        } catch (Exception e) {
+            System.err.println("Failed to get brake activation percent: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the brake from the given brake Plc with the given value", group = "HMI-Brake", prefix = "")
+    public void setBrake(@ShellOption() String name, @ShellOption(help = "The value for the brake to be set") Integer value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setBrake(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set brake: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the emergency brake from the given brake Plc, set it to true to activate emergency braking and to false to deactivate it", group = "HMI-Brake", prefix = "")
+    public void setEmergencyBrake(@ShellOption() String name, @ShellOption(help = "true if the emergency breaking should be activated, false to deactivate it", defaultValue = "true") Boolean value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setEmergencyBrake(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set emergency brake: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the parking brake from the given brake Plc, set it to true to activate parking brake and to false to deactivate it", group = "HMI-Brake", prefix = "")
+    public void setParkingBrake(@ShellOption() String name, @ShellOption(help = "true if the emergency breaking should be activated, false to deactivate it", defaultValue = "true") Boolean value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setParkBrake(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set parking brake: " + e.getMessage());
+        }
+    }
+
+    /* Security Plc operations */
+    @ShellMethod(value = "Get the fence status of the attraction from the given brake Plc", group = "HMI-Security", prefix = "")
+    public void getFenceStatus(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getFenceStatus(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get fence status: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the fences from the given brake Plc, set it to true to close the fences and to false to open them", group = "HMI-Security", prefix = "")
+    public void setFence(@ShellOption() String name, @ShellOption(help = "true if the fence should be closed, false to open it", defaultValue = "true") Boolean value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setFence(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set fence: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Get the seatbelt status of the attraction from the given brake Plc", group = "HMI-Security", prefix = "")
+    public void getSeatbeltStatus(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getSeatbeltStatus(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get seatbelt status: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the seatbelts from the given brake Plc, set it to true to lock the seatbelts and to false to open them", group = "HMI-Security", prefix = "")
+    public void setSeatbelt(@ShellOption() String name, @ShellOption(help = "true if the seatbelts should be locked, false to open them", defaultValue = "true") Boolean value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setSeatbelt(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set seatbelt: " + e.getMessage());
+        }
+    }
 
     // TODO check for historian
 

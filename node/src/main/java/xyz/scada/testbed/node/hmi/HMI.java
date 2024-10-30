@@ -7,7 +7,9 @@ import xyz.scada.testbed.node.hmi.exceptions.PlcAlreadyPresent;
 import xyz.scada.testbed.node.hmi.exceptions.PlcBadType;
 import xyz.scada.testbed.node.hmi.exceptions.PlcNotPresent;
 import xyz.scada.testbed.node.hmi.plc.Plc;
+import xyz.scada.testbed.node.hmi.plc.PlcBrake;
 import xyz.scada.testbed.node.hmi.plc.PlcProgression;
+import xyz.scada.testbed.node.hmi.plc.PlcSecurity;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -29,6 +31,7 @@ public class HMI {
         plc = switch (type) {
             case "plc" -> new Plc(ipAddr, port, name, description);
             case "progression" -> new PlcProgression(ipAddr, port, name, description);
+            case "brake" -> new PlcBrake(ipAddr, port, name, description);
             default -> throw new Exception("No type found for " + type);
         };
 
@@ -51,6 +54,7 @@ public class HMI {
     }
 
 
+    /* Progression */
     public List<Boolean> getCheckpoints(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         var plc = getPlc(plcName);
         if (!(plc instanceof PlcProgression))
@@ -65,7 +69,75 @@ public class HMI {
         ((PlcProgression) plc).setStart();
     }
 
-    /* Read operations */
+
+    /* Plc Brake */
+
+    public int getBrakePressure(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcBrake))
+            throw new PlcBadType(plcName);
+        return ((PlcBrake) plc).getBrakePressure();
+    }
+
+    public int getActivationPercent(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcBrake))
+            throw new PlcBadType(plcName);
+        return ((PlcBrake) plc).getActivationPercent();
+    }
+
+    public void setBrake(String plcName, int brakeValue) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcBrake bPlc))
+            throw new PlcBadType(plcName);
+        bPlc.setBrake(brakeValue);
+    }
+
+    public void setEmergencyBrake(String plcName, boolean breaking) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcBrake bPlc))
+            throw new PlcBadType(plcName);
+        bPlc.setEmergencyBrake(breaking);
+    }
+
+    public void setParkBrake(String plcName, boolean breaking) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcBrake bPlc))
+            throw new PlcBadType(plcName);
+        bPlc.setParkBrake(breaking);
+    }
+
+    /* Plc Security */
+    public int getFenceStatus(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity))
+            throw new PlcBadType(plcName);
+        return ((PlcSecurity) plc).getFenceStatus();
+    }
+
+    public void setFence(String plcName, boolean isClose) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity sPlc))
+            throw new PlcBadType(plcName);
+        sPlc.setFence(isClose);
+    }
+
+    public int getSeatbeltStatus(String plcName) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity))
+            throw new PlcBadType(plcName);
+        return ((PlcSecurity) plc).getSeatbeltStatus();
+    }
+
+    public void setSeatbelt(String plcName, boolean isLocked) throws PlcNotPresent, PlcBadType, ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var plc = getPlc(plcName);
+        if (!(plc instanceof PlcSecurity sPlc))
+            throw new PlcBadType(plcName);
+        sPlc.setSeatbelt(isLocked);
+    }
+
+
+    /* IO Read operations */
 
     /**
      *
@@ -110,7 +182,7 @@ public class HMI {
      * @throws PlcNotPresent if plcName match any plc name's present in the hmi
      */
     public void writeSingleRegister(String plcName, int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException, PlcNotPresent {
-        getPlc(plcName).writeSingleRegisterResponse(address, value);
+        getPlc(plcName).writeSingleRegister(address, value);
     }
 
     /**

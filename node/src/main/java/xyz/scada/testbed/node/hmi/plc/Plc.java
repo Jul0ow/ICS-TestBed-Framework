@@ -30,7 +30,7 @@ public class Plc {
     }
 
     /* Write operations */
-    public WriteSingleRegisterResponse writeSingleRegisterResponse(int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+    public WriteSingleRegisterResponse writeSingleRegister(int address, int value) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         var client = connect();
 
         WriteSingleRegisterRequest request = new WriteSingleRegisterRequest(address, value);
@@ -71,6 +71,22 @@ public class Plc {
         LOGGER.info("Sending readHoldingRegisters: " + request);
 
         ReadHoldingRegistersResponse response = client.readHoldingRegisters(
+                1,
+                request
+        );
+
+        client.disconnect();
+        return response;
+    }
+
+    public ReadInputRegistersResponse readInputRegister(int address, int quantity) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
+        var client = connect();
+
+        ReadInputRegistersRequest request = new ReadInputRegistersRequest(address, quantity);
+
+        LOGGER.info("Sending readInputRegisters: " + request);
+
+        ReadInputRegistersResponse response = client.readInputRegisters(
                 1,
                 request
         );
