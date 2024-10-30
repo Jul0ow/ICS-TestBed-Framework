@@ -10,6 +10,7 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import xyz.scada.testbed.node.hmi.HMI;
+import xyz.scada.testbed.node.plc.BrakesModbusService;
 import xyz.scada.testbed.node.plc.ModBusTCP;
 import xyz.scada.testbed.node.plc.ProgressionModbusService;
 
@@ -63,6 +64,18 @@ public class Main {
                     });
                 } catch (UnknownUnitIdException e) {
                     System.out.println("Could not create ProgressionModbusService.");
+                }
+            } else if (type.equals("Brakes")) {
+                ProcessImage image = new ProcessImage();
+                try {
+                    modbusTCP = new ModBusTCP(new BrakesModbusService() {
+                        @Override
+                        protected Optional<ProcessImage> getProcessImage(int i) {
+                            return Optional.of(image);
+                        }
+                    });
+                } catch (UnknownUnitIdException e) {
+                    System.out.println("Could not create BrakesModbusService.");
                 }
             } else
                 System.out.println("Error: Invalid PLC type.");

@@ -2,7 +2,6 @@ package xyz.scada.testbed.node.plc;
 
 import com.digitalpetri.modbus.server.*;
 
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
