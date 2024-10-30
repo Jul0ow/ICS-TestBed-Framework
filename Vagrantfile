@@ -21,6 +21,12 @@ Vagrant.configure("2") do |config|
     node.vm.network "private_network", ip: "10.50.50.100"
   end
 
+  config.vm.define "plc-brakes" do |node|
+    node.vm.hostname = "plc-brakes"
+    node.vm.box = "testbed-node"
+    node.vm.network "private_network", ip: "10.50.50.101"
+  end
+
   config.vm.define "hmi" do |hmi|
     hmi.vm.hostname = "hmi"
     hmi.vm.box = "testbed-node"
