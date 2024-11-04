@@ -8,11 +8,8 @@ import lombok.Getter;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 /**
@@ -44,11 +41,16 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
     }
 
     private static final Logger LOGGER;
+    /* --------- Simulation Part -------- */
     // Delay between request breaking and breaking pressure increasing (in seconds)
     private final Duration breakingDelay = Duration.of(600, ChronoUnit.MILLIS);
     // time since the start of breaking (in seconds), used for the sigmoid function
     private Instant startBreakingTime = null;
     private int initialBreakingPressure = -1;
+    int MINIMAL_PRESSURE = 100;
+    int MAXIMAL_PRESSURE = 600;
+    boolean isEmergencyBrake = false;
+    boolean isParkingBrake = false;
 
     ScheduledFuture<?> currentBraking;
 
@@ -61,10 +63,14 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
         if (percentage > 100 | percentage < 0) {
             throw new IllegalArgumentException("Percentage given is not 0-100 " + percentage);
         }
-        /* --------- Simulation Part -------- */
-        int MINIMAL_PRESSURE = 100;
-        int MAXIMAL_PRESSURE = 600;
         return percentage * (MAXIMAL_PRESSURE - MINIMAL_PRESSURE) / 100 + MINIMAL_PRESSURE;
+    }
+
+    private int getPercentageFromPressure(int pressure) {
+        if (pressure > MAXIMAL_PRESSURE | pressure < MINIMAL_PRESSURE) {
+            throw new IllegalArgumentException("Pressure is out of bound" + pressure);
+        }
+        return (pressure - MINIMAL_PRESSURE) * 100 / (MAXIMAL_PRESSURE - MINIMAL_PRESSURE);
     }
 
     private int convertByteToInt(byte[] bytes) {
@@ -82,13 +88,49 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
         return res;
     }
 
+    private boolean getEmergencyCoilRegister(ProcessImage processImage) {
+        Boolean emergencyBrakesActivated = processImage.get(transaction -> transaction.readCoils(integerMap -> integerMap
+                .get(DataAddresses.EMERGENCY_BRAKES.getAddress())));
+
+        LOGGER.info("Getting emergency coil register " + emergencyBrakesActivated);
+
+        return emergencyBrakesActivated;
+    }
+
+    private boolean getParkingCoilRegister(ProcessImage processImage) {
+        boolean parkingBrakesActivated = processImage.get(transaction -> transaction.readCoils(integerMap -> integerMap
+                .get(DataAddresses.PARKING_BRAKES.getAddress())));
+
+        LOGGER.info("Getting parking coil register " + parkingBrakesActivated);
+
+        return parkingBrakesActivated;
+    }
+
     private void setPressureInputRegister(ProcessImage processImage, int pressure) {
-        LOGGER.info("Setting pressure " + pressure);
+        int percentage = getPercentageFromPressure(pressure);
+        LOGGER.info("Setting pressure : " + pressure + " and percentage : " + percentage);
         byte[] pressureValues = {(byte) (pressure >> 8), (byte) (pressure & 0xFF)};
+        byte[] percentageValues = {(byte) (percentage >> 8), (byte) (percentage & 0xFF)};
 
         processImage.with(transaction -> transaction
-                .writeInputRegisters(map ->
-                        map.put(DataAddresses.BRAKES_PRESSURE.getAddress(), pressureValues)));
+                .writeInputRegisters(map -> {
+                    map.put(DataAddresses.BRAKES_PRESSURE.getAddress(), pressureValues);
+                    map.put(DataAddresses.ACTIVATION_PERCENTAGE.getAddress(), percentageValues);
+                }));
+    }
+
+    private void setEmergencyCoil(ProcessImage processImage, boolean isActivated) {
+        LOGGER.info("Setting emergency coil to " + isActivated);
+
+        processImage.with(transaction -> transaction
+                .writeCoils(map -> map.put(DataAddresses.EMERGENCY_BRAKES.getAddress(), isActivated)));
+    }
+
+    private void setParkingCoil(ProcessImage processImage, boolean isActivated) {
+        LOGGER.info("Setting parking coil to " + isActivated);
+
+        processImage.with(transaction -> transaction
+                .writeCoils(map -> map.put(DataAddresses.PARKING_BRAKES.getAddress(), isActivated)));
     }
 
     /*
@@ -103,7 +145,7 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
         } else if (requestedBraking > initialBreakingPressure) {
             return initialBreakingPressure + (int) Math.ceil((requestedBraking - initialBreakingPressure) / (1 + (float) Math.exp(-k * timeElapsed.minus(breakingDelay).toMillis() / 1000)));
         } else {
-            return requestedBraking + (int) Math.ceil((initialBreakingPressure - requestedBraking) / (1 + (float) Math.exp(k * timeElapsed.minus(breakingDelay).toMillis() / 1000)));
+            return requestedBraking + (int) Math.floor((initialBreakingPressure - requestedBraking) / (1 + (float) Math.exp(k * timeElapsed.minus(breakingDelay).toMillis() / 1000)));
         }
     }
 
@@ -116,11 +158,12 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
             currentBraking.cancel(true);
         }
 
-        ProcessImage image = getProcessImage(0).orElseThrow(() -> new UnknownUnitIdException(0));
-
         startBreakingTime = Instant.now();
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+        ProcessImage image = getProcessImage(0).orElseThrow(() -> new UnknownUnitIdException(0));
+
         currentBraking = executor.scheduleAtFixedRate(() -> {
             if (initialBreakingPressure == -1) {
                 initialBreakingPressure = getPressureInputRegister(image);
@@ -147,6 +190,8 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
 
         // Set default pressure
         setPressureInputRegister(processImage, 100);
+        setEmergencyCoil(processImage, false);
+        setParkingCoil(processImage, false);
         processImage.addModificationListener(new ProcessImage.ModificationListener() {
 
             @Override
@@ -155,12 +200,23 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
                     int address = modification.address();
                     boolean value = modification.value();
 
-                    if (address == DataAddresses.EMERGENCY_BRAKES.getAddress() && value) {
-                        LOGGER.info("Emergency brakes activated.");
+                    if (address == DataAddresses.EMERGENCY_BRAKES.getAddress()) {
+                        LOGGER.info("Emergency brakes activated : " + value);
+                        isEmergencyBrake = value;
+
+                        if (isEmergencyBrake) {
+                            try {
+                                updateBrakePressure(getPressureFromPercentage(100));
+                            } catch (UnknownUnitIdException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                     }
 
-                    if (address == DataAddresses.PARKING_BRAKES.getAddress() && value) {
-                        LOGGER.info("Parking brakes activated.");
+                    if (address == DataAddresses.PARKING_BRAKES.getAddress()) {
+                        LOGGER.info("Parking brakes activated : " + value);
+
+                        isParkingBrake = value;
                     }
                 });
             }
@@ -176,9 +232,17 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
                     int address = modification.address();
                     byte[] value = modification.value();
 
-                    LOGGER.info(Arrays.toString(value));
-
                     if (address == DataAddresses.REQUESTED_BRAKES_ACTIVATION.getAddress()) {
+                        if (isEmergencyBrake)
+                        {
+                            LOGGER.warning("Cannot modify brakes pressure, emergency brakes activated");
+                            return;
+                        }
+                        if (isParkingBrake)
+                        {
+                            LOGGER.warning("Cannot modify brakes pressure, parking brakes activated");
+                            return;
+                        }
                         int percentage = convertByteToInt(value);
 
                         int pressure;
