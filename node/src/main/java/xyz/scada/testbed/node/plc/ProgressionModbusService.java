@@ -1,8 +1,12 @@
 package xyz.scada.testbed.node.plc;
 
+import com.digitalpetri.modbus.exceptions.ModbusExecutionException;
+import com.digitalpetri.modbus.exceptions.ModbusResponseException;
+import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import com.digitalpetri.modbus.exceptions.UnknownUnitIdException;
 import com.digitalpetri.modbus.server.*;
 import lombok.Getter;
+import xyz.scada.testbed.node.hmi.plc.PlcSecurity;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -48,6 +52,9 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
 
     private static final Logger LOGGER;
 
+    private static final String plcSecurityIp = "10.50.50.102";
+    private PlcSecurity plcSecurity;
+
     static {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%n");
         LOGGER = Logger.getLogger(ProgressionModbusService.class.getName());
@@ -55,6 +62,9 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
 
     public ProgressionModbusService() throws UnknownUnitIdException {
         super();
+
+        plcSecurity = new PlcSecurity(plcSecurityIp, 502, "plcSecurity", "");
+
         ProcessImage processImage = getProcessImage(0).orElseThrow(() -> new UnknownUnitIdException(0));
         processImage.addModificationListener(new ProcessImage.ModificationListener() {
             @Override
@@ -109,6 +119,15 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
 
     public void launchRide() throws UnknownUnitIdException {
         LOGGER.info("ProgressionPLC routine started.");
+
+        // Close the fence
+        try {
+            plcSecurity.setFence(true);
+            LOGGER.info("Requesting closing of the Fence.");
+        } catch (Exception e) {
+            LOGGER.severe("Failed to notify plcSecurity to close fences: " + e.getMessage());
+        }
+
         if (elapsedTime != 0) {
             LOGGER.warning("ProgressionPLC routine already running.");
             return;
@@ -137,6 +156,13 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
             } else if (elapsedTime == 289) {
                 setCheckpoint(processImage, DataAddresses.CHECKPOINT_5);
                 LOGGER.info("Checkpoint 5 reached (Ready to start).");
+                // Open the fence
+                try {
+                    plcSecurity.setFence(false);
+                    LOGGER.info("Requesting opening of the Fence.");
+                } catch (Exception e) {
+                    LOGGER.severe("Failed to notify plcSecurity to open fences: " + e.getMessage());
+                }
             }
 
             if (elapsedTime >= DURATION) {
