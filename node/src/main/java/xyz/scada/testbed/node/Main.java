@@ -13,6 +13,7 @@ import xyz.scada.testbed.node.hmi.HMI;
 import xyz.scada.testbed.node.plc.BrakesModbusService;
 import xyz.scada.testbed.node.plc.ModBusTCP;
 import xyz.scada.testbed.node.plc.ProgressionModbusService;
+import xyz.scada.testbed.node.plc.SecurityModbusService;
 
 import java.util.Optional;
 import java.util.logging.Level;
@@ -76,6 +77,18 @@ public class Main {
                     });
                 } catch (UnknownUnitIdException e) {
                     System.out.println("Could not create BrakesModbusService.");
+                }
+            } else if (type.equals("Security")) {
+                ProcessImage image = new ProcessImage();
+                try {
+                    modbusTCP = new ModBusTCP(new SecurityModbusService() {
+                        @Override
+                        protected Optional<ProcessImage> getProcessImage(int i) {
+                            return Optional.of(image);
+                        }
+                    });
+                } catch (UnknownUnitIdException e) {
+                    System.out.println("Could not create SecurityModbusService.");
                 }
             } else
                 System.out.println("Error: Invalid PLC type.");
