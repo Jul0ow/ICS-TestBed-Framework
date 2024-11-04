@@ -32,7 +32,7 @@ public class PlcEngine extends Plc {
 
     public int getEngineTemp() throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         ReadInputRegistersResponse response = readInputRegister(Address.IR_ENGINE_TEMP.getValue(), 1);
-        int res = response.registers()[0];
+        int res = getInt16FromByteArray(response.registers());
         System.out.println(response);
 
         return res;
@@ -40,7 +40,7 @@ public class PlcEngine extends Plc {
 
     public int getEngineRMP() throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
         ReadInputRegistersResponse response = readInputRegister(Address.IR_RPM.getValue(), 1);
-        int res = response.registers()[0];
+        int res = getInt16FromByteArray(response.registers());
         System.out.println(response);
 
         return res;

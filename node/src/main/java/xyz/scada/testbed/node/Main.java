@@ -351,6 +351,32 @@ public class Main {
     }
 
 
+    /* Light plc operations */
+    @ShellMethod(value = "Get the light status from the given light Plc", group = "HMI-Light", prefix = "")
+    public void getLightStatus(@ShellOption() String name) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            System.out.println(hmi.getLightStatus(name));
+        } catch (Exception e) {
+            System.err.println("Failed to get light: " + e.getMessage());
+        }
+    }
+
+    @ShellMethod(value = "Set the lights ON or OFF to the given light Plc, set it to true to turn ON the lights and to false to turn them OFF", group = "HMI-Security", prefix = "")
+    public void setLight(@ShellOption() String name, @ShellOption(help = "true if the lights should be ON, false to turn them OFF", defaultValue = "true") Boolean value) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        try {
+            hmi.setLight(name, value);
+        } catch (Exception e) {
+            System.err.println("Failed to set lights: " + e.getMessage());
+        }
+    }
+
+
     // TODO check for historian
 
     // TODO modify historian to connect to Modbus
