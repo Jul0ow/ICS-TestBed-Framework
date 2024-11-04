@@ -30,8 +30,8 @@ public class ModBusTCP {
 
         try {
             server.start();
-            LOGGER.log(Level.INFO, " ProgressionPLC Server started!");
-            System.out.println("ProgressionPLC Started.");
+            LOGGER.log(Level.INFO, "Server started!");
+            System.out.println("Server Started.");
         } catch (ExecutionException | InterruptedException e) {
             LOGGER.log(Level.SEVERE, "Unable to start listening: {0}", e.getMessage());
         }

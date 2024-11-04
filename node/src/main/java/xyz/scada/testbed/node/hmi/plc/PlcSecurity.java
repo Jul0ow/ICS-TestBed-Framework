@@ -9,8 +9,8 @@ import com.digitalpetri.modbus.pdu.ReadInputRegistersResponse;
 public class PlcSecurity extends Plc {
 
     enum Address implements AddressPlc{
-        C_FENCE(0), //TODO
-        C_SEATBELT(0); // TODO
+        C_FENCE(4),
+        C_SEATBELT(5);
 
         private final int value;
 
