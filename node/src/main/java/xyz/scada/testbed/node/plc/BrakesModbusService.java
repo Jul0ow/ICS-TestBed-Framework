@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Logger;
 
 /**
@@ -42,24 +43,32 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
         }
     }
 
-    /* --------- Simulation Part -------- */
     private static final Logger LOGGER;
-    // Coefficient that link requested breaking with actual breaking pressure
-    private int coeffBrakesPressure = 6;
     // Delay between request breaking and breaking pressure increasing (in seconds)
-    private Duration breakingDelay = Duration.of(600, ChronoUnit.MILLIS);
+    private final Duration breakingDelay = Duration.of(600, ChronoUnit.MILLIS);
     // time since the start of breaking (in seconds), used for the sigmoid function
     private Instant startBreakingTime = null;
-    // Bar pressure for the break while non-breaking
-    private float unbreakingPressure = 0;
+    private int initialBreakingPressure = -1;
+
+    ScheduledFuture<?> currentBraking;
 
     static {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%n");
         LOGGER = Logger.getLogger(BrakesModbusService.class.getName());
     }
 
+    private int getPressureFromPercentage(int percentage) {
+        if (percentage > 100 | percentage < 0) {
+            throw new IllegalArgumentException("Percentage given is not 0-100 " + percentage);
+        }
+        /* --------- Simulation Part -------- */
+        int MINIMAL_PRESSURE = 100;
+        int MAXIMAL_PRESSURE = 600;
+        return percentage * (MAXIMAL_PRESSURE - MINIMAL_PRESSURE) / 100 + MINIMAL_PRESSURE;
+    }
+
     private int convertByteToInt(byte[] bytes) {
-        return (bytes[0] << 8 | bytes[1]) & 0xFF;
+        return ((bytes[0] & 0xFF) << 8) | (bytes[1] & 0xFF);
     }
 
     private int getPressureInputRegister(ProcessImage processImage) {
@@ -91,44 +100,39 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
         float k = 0.7f;
         if (timeElapsed.compareTo(breakingDelay) < 0) {
             return 0;
+        } else if (requestedBraking > initialBreakingPressure) {
+            return initialBreakingPressure + (int) Math.ceil((requestedBraking - initialBreakingPressure) / (1 + (float) Math.exp(-k * timeElapsed.minus(breakingDelay).toMillis() / 1000)));
         } else {
-            return (int) (requestedBraking / (1 + (float) Math.exp(-k * timeElapsed.toMillis() / 1000)));
-        }
-    }
-
-    private int getUnbrakingPressure(int requestedBraking) {
-        float pressureMax = requestedBraking * coeffBrakesPressure;
-
-        Duration timeElapsed = Duration.between(Instant.now(), startBreakingTime);
-        float k = 0.7f;
-        if (timeElapsed.compareTo(breakingDelay) < 0) {
-            return 0;
-        } else {
-            return (int) (pressureMax / (1 + (float) Math.exp(k * timeElapsed.toMillis() / 1000)));
+            return requestedBraking + (int) Math.ceil((initialBreakingPressure - requestedBraking) / (1 + (float) Math.exp(k * timeElapsed.minus(breakingDelay).toMillis() / 1000)));
         }
     }
 
     private void updateBrakePressure(int requestedBraking) throws UnknownUnitIdException {
         LOGGER.info("Scheduling braking to " + requestedBraking);
 
+        if (currentBraking != null && !currentBraking.isDone()) {
+            LOGGER.info("Cancelling previous brake");
+            initialBreakingPressure = -1;
+            currentBraking.cancel(true);
+        }
+
         ProcessImage image = getProcessImage(0).orElseThrow(() -> new UnknownUnitIdException(0));
 
         startBreakingTime = Instant.now();
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> {
-            int nextPressure;
-            if (getPressureInputRegister(image) < requestedBraking) {
-                nextPressure = getBrakingPressure(requestedBraking);
-            } else {
-                nextPressure = getUnbrakingPressure(requestedBraking);
+        currentBraking = executor.scheduleAtFixedRate(() -> {
+            if (initialBreakingPressure == -1) {
+                initialBreakingPressure = getPressureInputRegister(image);
             }
+            int nextPressure = getBrakingPressure(requestedBraking);
 
             if (nextPressure != 0) {
                 setPressureInputRegister(image, nextPressure);
             }
 
             if (nextPressure == requestedBraking) {
+                initialBreakingPressure = -1;
                 executor.shutdown();
             }
         }, 600, 500, java.util.concurrent.TimeUnit.MILLISECONDS);
@@ -172,9 +176,20 @@ public abstract class BrakesModbusService extends ReadWriteModbusServices {
                     int address = modification.address();
                     byte[] value = modification.value();
 
+                    LOGGER.info(Arrays.toString(value));
+
                     if (address == DataAddresses.REQUESTED_BRAKES_ACTIVATION.getAddress()) {
-                        int pressure = convertByteToInt(value);
-                        LOGGER.info("Requested brakes activation updated to " + pressure);
+                        int percentage = convertByteToInt(value);
+
+                        int pressure;
+                        try {
+                            pressure = getPressureFromPercentage(percentage);
+                        } catch (IllegalArgumentException e) {
+                            LOGGER.warning(e.getMessage());
+                            return;
+                        }
+
+                        LOGGER.info("Requested brakes activation : " + percentage + " updated to " + pressure);
                         try {
                             updateBrakePressure(pressure);
                         } catch (UnknownUnitIdException e) {
