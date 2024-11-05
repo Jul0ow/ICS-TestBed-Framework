@@ -50,6 +50,6 @@ public class PlcSecurity extends Plc {
     }
 
     public void setSeatbelt(boolean isLocked) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
-        writeSingleCoil(Address.C_FENCE.getValue(), isLocked ? 1: 0);
+        writeSingleCoil(Address.C_SEATBELT.getValue(), isLocked ? 1: 0);
     }
 }
