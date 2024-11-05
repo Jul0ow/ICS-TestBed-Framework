@@ -123,9 +123,10 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
         // Close the fence
         try {
             plcSecurity.setFence(true);
-            LOGGER.info("Requesting closing of the Fence.");
+            plcSecurity.setSeatbelt(true);
+            LOGGER.info("Requesting closing of the fences and the seatbelts.");
         } catch (Exception e) {
-            LOGGER.severe("Failed to notify plcSecurity to close fences: " + e.getMessage());
+            LOGGER.severe("Failed to notify plcSecurity to close fences and the seatbelts: " + e.getMessage());
         }
 
         if (elapsedTime != 0) {
@@ -159,9 +160,10 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
                 // Open the fence
                 try {
                     plcSecurity.setFence(false);
-                    LOGGER.info("Requesting opening of the Fence.");
+                    plcSecurity.setSeatbelt(false);
+                    LOGGER.info("Requesting opening of the fences and the seatbelts.");
                 } catch (Exception e) {
-                    LOGGER.severe("Failed to notify plcSecurity to open fences: " + e.getMessage());
+                    LOGGER.severe("Failed to notify plcSecurity to open fences and the seatbelts: " + e.getMessage());
                 }
             }
 
