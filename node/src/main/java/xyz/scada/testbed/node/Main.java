@@ -104,6 +104,19 @@ public class Main {
                         System.out.println("Could not create LightModbusService.");
                     }
                 }
+                case "Engine" -> {
+                    ProcessImage image = new ProcessImage();
+                    try {
+                        modbusTCP = new ModBusTCP(new EngineModbusService() {
+                            @Override
+                            protected Optional<ProcessImage> getProcessImage(int i) {
+                                return Optional.of(image);
+                            }
+                        });
+                    } catch (UnknownUnitIdException e) {
+                        System.out.println("Could not create EngineModbusService.");
+                    }
+                }
                 default -> System.out.println("Error: Invalid PLC type.");
             }
             mode = "TCP";

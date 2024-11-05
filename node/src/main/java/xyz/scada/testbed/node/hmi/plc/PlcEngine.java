@@ -9,9 +9,9 @@ import com.digitalpetri.modbus.pdu.ReadInputRegistersResponse;
 public class PlcEngine extends Plc {
 
     enum Address implements AddressPlc{
-        IR_ENGINE_TEMP(0), //TODO
-        IR_RPM(0),
-        HR_REQUESTED_POWER(0); // TODO
+        IR_ENGINE_TEMP(30003),
+        IR_RPM(30004),
+        HR_REQUESTED_POWER(40002);
 
         private final int value;
 

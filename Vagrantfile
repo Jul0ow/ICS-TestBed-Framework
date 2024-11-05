@@ -39,6 +39,12 @@ Vagrant.configure("2") do |config|
       node.vm.network "private_network", ip: "10.50.50.103"
   end
 
+  config.vm.define "plc-engine" do |node|
+      node.vm.hostname = "plc-engine"
+      node.vm.box = "testbed-node"
+      node.vm.network "private_network", ip: "10.50.50.104"
+   end
+
   config.vm.define "hmi" do |hmi|
     hmi.vm.hostname = "hmi"
     hmi.vm.box = "testbed-node"

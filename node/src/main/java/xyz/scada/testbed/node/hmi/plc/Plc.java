@@ -128,7 +128,7 @@ public class Plc {
         return response;
     }
 
-    protected int getInt16FromByteArray(byte[] input)
+    public static int getInt16FromByteArray(byte[] input)
     {
         return ((input[0] & 0xFF) << 8) | (input[1] & 0xFF);
     }
