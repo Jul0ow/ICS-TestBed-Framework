@@ -6,11 +6,14 @@ import com.digitalpetri.modbus.exceptions.ModbusTimeoutException;
 import com.digitalpetri.modbus.exceptions.UnknownUnitIdException;
 import com.digitalpetri.modbus.server.*;
 import lombok.Getter;
+import xyz.scada.testbed.node.hmi.plc.PlcBrake;
 import xyz.scada.testbed.node.hmi.plc.PlcSecurity;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,8 +55,10 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
 
     private static final Logger LOGGER;
 
+    private static final String plcBrakeIp = "10.50.50.101";
     private static final String plcSecurityIp = "10.50.50.102";
     private final PlcSecurity plcSecurity;
+    private final PlcBrake plcBrake;
 
     static {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%n");
@@ -64,6 +69,7 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
         super();
 
         plcSecurity = new PlcSecurity(plcSecurityIp, 502, "plcSecurity", "");
+        plcBrake = new PlcBrake(plcBrakeIp, 502, "plcBrake", "");
 
         ProcessImage processImage = getProcessImage(0).orElseThrow(() -> new UnknownUnitIdException(0));
         processImage.addModificationListener(new ProcessImage.ModificationListener() {
@@ -117,6 +123,35 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
         processImage.with(tx -> tx.writeDiscreteInputs(coilMap -> coilMap.put(checkpoint.getAddress(), true)));
     }
 
+    private void sendBrakeRequest(int percentage, boolean isUnbraking) {
+        try {
+            plcBrake.setBrake(percentage);
+        } catch (ModbusExecutionException | ModbusTimeoutException | ModbusResponseException e) {
+            LOGGER.warning(e.getMessage());
+            return;
+        }
+
+        ScheduledExecutorService executors = Executors.newSingleThreadScheduledExecutor();
+
+        executors.scheduleAtFixedRate(() -> {
+            int currentPercentage = 0;
+            try {
+                currentPercentage = plcBrake.getActivationPercent();
+            } catch (ModbusExecutionException | ModbusResponseException | ModbusTimeoutException e) {
+                LOGGER.warning(e.getMessage());
+                executors.shutdown();
+                return;
+            }
+            if (currentPercentage - 2 <= percentage && percentage <= currentPercentage + 2) {
+                if (isUnbraking)
+                {
+                    sendBrakeRequest(0, false);
+                }
+                executors.shutdown();
+            }
+        }, 100, 400, TimeUnit.MILLISECONDS);
+    }
+
     public void launchRide() throws UnknownUnitIdException {
         LOGGER.info("ProgressionPLC routine started.");
 
@@ -142,18 +177,25 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
         // TODO : Implement modbus messages to activate brakes
         executor.scheduleAtFixedRate(() -> {
             elapsedTime++;
+            if (elapsedTime == 1)
+            {
+                sendBrakeRequest(0, false);
+            }
             if (elapsedTime == 30) {
                 setCheckpoint(processImage, DataAddresses.CHECKPOINT_1);
                 LOGGER.info("Checkpoint 1 reached (Before first slope).");
             } else if (elapsedTime == 70) {
                 setCheckpoint(processImage, DataAddresses.CHECKPOINT_2);
                 LOGGER.info("Checkpoint 2 reached (First brake).");
+                sendBrakeRequest(70, true);
             } else if (elapsedTime == 144) {
                 setCheckpoint(processImage, DataAddresses.CHECKPOINT_3);
                 LOGGER.info("Checkpoint 3 reached (Second brake).");
+                sendBrakeRequest(50, true);
             } else if (elapsedTime == 216) {
                 setCheckpoint(processImage, DataAddresses.CHECKPOINT_4);
                 LOGGER.info("Checkpoint 4 reached (Last brake).\nRide completed.");
+                sendBrakeRequest(100, false);
             } else if (elapsedTime == 289) {
                 setCheckpoint(processImage, DataAddresses.CHECKPOINT_5);
                 LOGGER.info("Checkpoint 5 reached (Ready to start).");
