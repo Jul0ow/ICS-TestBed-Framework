@@ -77,26 +77,22 @@ public abstract class EngineModbusService extends ReadWriteModbusServices {
 
             @Override
             public void onHoldingRegistersModified(List<ProcessImage.Modification.HoldingRegisterModification> list) {
-                try {
-                    setData(processImage, 20, 60);
-                } catch (UnknownUnitIdException e) {
-                    throw new RuntimeException(e);
-                }
                 list.forEach(modification -> {
                     int address = modification.address();
                     byte[] value = modification.value();
                     int requested_power = Plc.getInt16FromByteArray(value);
                     LOGGER.log(Level.INFO, "Holding register at address {0} set to {1}({2})", new Object[]{address, value, requested_power});
 
-                    int temperature = rand.nextInt(40) + 60 + (requested_power / 2);
-                    int rpm = requested_power * 50;
-
                     if (address == DataAddresses.HR_REQUESTED_POWER.getAddress()) {
-                        try {
-                            setData(processImage, temperature, rpm);
-                        } catch (UnknownUnitIdException e) {
-                            throw new RuntimeException(e);
-                        }
+                        int temperature = rand.nextInt(40) + 60 + (requested_power / 2);
+                        int rpm = requested_power * 50;
+                        new Thread(() -> {
+                            try {
+                                setData(processImage, temperature, rpm);
+                            } catch (UnknownUnitIdException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }).start();
                     }
                 });
             }
