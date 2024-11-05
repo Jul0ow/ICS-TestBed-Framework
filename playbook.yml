@@ -26,6 +26,10 @@
       shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/security.cmd ENTER"
       when: "'security' in ansible_hostname"
 
+    - name: Startup Lights PLC
+      shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/lights.cmd ENTER"
+      when: "'lights' in ansible_hostname"
+
     - name: Startup HMI
       shell: "tmux new -d java -jar /vagrant/node/target/node-1.0.jar && tmux send script SPACE /vagrant/scripts/hmi.cmd ENTER"
       when: "'hmi' in ansible_hostname"

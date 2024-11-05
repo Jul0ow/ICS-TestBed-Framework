@@ -53,7 +53,7 @@ public abstract class ProgressionModbusService extends ReadWriteModbusServices {
     private static final Logger LOGGER;
 
     private static final String plcSecurityIp = "10.50.50.102";
-    private PlcSecurity plcSecurity;
+    private final PlcSecurity plcSecurity;
 
     static {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%n");

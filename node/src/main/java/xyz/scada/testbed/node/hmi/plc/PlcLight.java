@@ -9,7 +9,7 @@ import com.digitalpetri.modbus.pdu.ReadInputRegistersResponse;
 public class PlcLight extends Plc {
 
     enum Address implements AddressPlc{
-        C_LIGHT(0); //TODO
+        C_LIGHT(6);
 
         private final int value;
 
@@ -37,6 +37,6 @@ public class PlcLight extends Plc {
     }
 
     public void setLight(boolean isOn) throws ModbusExecutionException, ModbusTimeoutException, ModbusResponseException {
-        writeSingleRegister(Address.C_LIGHT.getValue(), isOn ? 1 : 0);
+        writeSingleCoil(Address.C_LIGHT.getValue(), isOn ? 1 : 0);
     }
 }

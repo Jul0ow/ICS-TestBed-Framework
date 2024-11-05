@@ -10,10 +10,7 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import xyz.scada.testbed.node.hmi.HMI;
-import xyz.scada.testbed.node.plc.BrakesModbusService;
-import xyz.scada.testbed.node.plc.ModBusTCP;
-import xyz.scada.testbed.node.plc.ProgressionModbusService;
-import xyz.scada.testbed.node.plc.SecurityModbusService;
+import xyz.scada.testbed.node.plc.*;
 
 import java.util.Optional;
 import java.util.logging.Level;
@@ -54,44 +51,61 @@ public class Main {
     @ShellMethod(value = "Select PLC type.", group = "TCP")
     public void plcType(@ShellOption(help = "Possible values are 'Progression'") String type) {
         if (modbusTCP == null) {
-            if (type.equals("Progression")) {
-                ProcessImage image = new ProcessImage();
-                try {
-                    modbusTCP = new ModBusTCP(new ProgressionModbusService() {
-                        @Override
-                        protected Optional<ProcessImage> getProcessImage(int i) {
-                            return Optional.of(image);
-                        }
-                    });
-                } catch (UnknownUnitIdException e) {
-                    System.out.println("Could not create ProgressionModbusService.");
+            switch (type) {
+                case "Progression" -> {
+                    ProcessImage image = new ProcessImage();
+                    try {
+                        modbusTCP = new ModBusTCP(new ProgressionModbusService() {
+                            @Override
+                            protected Optional<ProcessImage> getProcessImage(int i) {
+                                return Optional.of(image);
+                            }
+                        });
+                    } catch (UnknownUnitIdException e) {
+                        System.out.println("Could not create ProgressionModbusService.");
+                    }
                 }
-            } else if (type.equals("Brakes")) {
-                ProcessImage image = new ProcessImage();
-                try {
-                    modbusTCP = new ModBusTCP(new BrakesModbusService() {
-                        @Override
-                        protected Optional<ProcessImage> getProcessImage(int i) {
-                            return Optional.of(image);
-                        }
-                    });
-                } catch (UnknownUnitIdException e) {
-                    System.out.println("Could not create BrakesModbusService.");
+                case "Brakes" -> {
+                    ProcessImage image = new ProcessImage();
+                    try {
+                        modbusTCP = new ModBusTCP(new BrakesModbusService() {
+                            @Override
+                            protected Optional<ProcessImage> getProcessImage(int i) {
+                                return Optional.of(image);
+                            }
+                        });
+                    } catch (UnknownUnitIdException e) {
+                        System.out.println("Could not create BrakesModbusService.");
+                    }
                 }
-            } else if (type.equals("Security")) {
-                ProcessImage image = new ProcessImage();
-                try {
-                    modbusTCP = new ModBusTCP(new SecurityModbusService() {
-                        @Override
-                        protected Optional<ProcessImage> getProcessImage(int i) {
-                            return Optional.of(image);
-                        }
-                    });
-                } catch (UnknownUnitIdException e) {
-                    System.out.println("Could not create SecurityModbusService.");
+                case "Security" -> {
+                    ProcessImage image = new ProcessImage();
+                    try {
+                        modbusTCP = new ModBusTCP(new SecurityModbusService() {
+                            @Override
+                            protected Optional<ProcessImage> getProcessImage(int i) {
+                                return Optional.of(image);
+                            }
+                        });
+                    } catch (UnknownUnitIdException e) {
+                        System.out.println("Could not create SecurityModbusService.");
+                    }
                 }
-            } else
-                System.out.println("Error: Invalid PLC type.");
+                case "Lights" -> {
+                    ProcessImage image = new ProcessImage();
+                    try {
+                        modbusTCP = new ModBusTCP(new LightModbusService() {
+                            @Override
+                            protected Optional<ProcessImage> getProcessImage(int i) {
+                                return Optional.of(image);
+                            }
+                        });
+                    } catch (UnknownUnitIdException e) {
+                        System.out.println("Could not create LightModbusService.");
+                    }
+                }
+                default -> System.out.println("Error: Invalid PLC type.");
+            }
             mode = "TCP";
         }
     }
@@ -365,7 +379,7 @@ public class Main {
 
 
     /* Light plc operations */
-    @ShellMethod(value = "Get the light status from the given light Plc", group = "HMI-Light", prefix = "")
+    @ShellMethod(value = "Get the light status from the given light Plc", group = "HMI-Lights", prefix = "")
     public void getLightStatus(@ShellOption() String name) {
         if (hmi == null)
             hmi = new HMI();
@@ -373,11 +387,11 @@ public class Main {
         try {
             System.out.println(hmi.getLightStatus(name));
         } catch (Exception e) {
-            System.err.println("Failed to get light: " + e.getMessage());
+            System.err.println("Failed to get lights: " + e.getMessage());
         }
     }
 
-    @ShellMethod(value = "Set the lights ON or OFF to the given light Plc, set it to true to turn ON the lights and to false to turn them OFF", group = "HMI-Security", prefix = "")
+    @ShellMethod(value = "Set the lights ON or OFF to the given light Plc, set it to true to turn ON the lights and to false to turn them OFF", group = "HMI-Lights", prefix = "")
     public void setLight(@ShellOption() String name, @ShellOption(help = "true if the lights should be ON, false to turn them OFF", defaultValue = "true") Boolean value) {
         if (hmi == null)
             hmi = new HMI();

@@ -31,7 +31,7 @@ public class HMI {
             case "progression" -> new PlcProgression(ipAddr, port, name, description);
             case "brake" -> new PlcBrake(ipAddr, port, name, description);
             case "security" -> new PlcSecurity(ipAddr, port, name, description);
-            case "light" -> new PlcLight(ipAddr, port, name, description);
+            case "lights" -> new PlcLight(ipAddr, port, name, description);
             default -> throw new Exception("No type found for " + type);
         };
 
