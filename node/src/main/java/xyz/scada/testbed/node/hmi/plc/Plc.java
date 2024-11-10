@@ -9,13 +9,14 @@ import com.digitalpetri.modbus.pdu.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @AllArgsConstructor
 @Getter
 public class Plc {
 
-    private static Logger LOGGER = Logger.getLogger(Plc.class.getName());;
+    private static final Logger LOGGER = Logger.getLogger(Plc.class.getName());;
 
     String ipAddr;
     int port;
@@ -35,7 +36,7 @@ public class Plc {
 
         WriteSingleRegisterRequest request = new WriteSingleRegisterRequest(address, value);
 
-        LOGGER.info("Sending writeSingleRegister: " + request);
+        // LOGGER.info("Sending writeSingleRegister: " + request);
 
         WriteSingleRegisterResponse writeSingleRegisterResponse = client.writeSingleRegister(
                 1,
@@ -52,7 +53,7 @@ public class Plc {
 
         WriteSingleCoilRequest request = new WriteSingleCoilRequest(address, value);
 
-        LOGGER.info("Sending writeSingleCoilRequest: " + request);
+        // LOGGER.info("Sending writeSingleCoilRequest: " + request);
 
         WriteSingleCoilResponse response = client.writeSingleCoil(
                 1,
@@ -70,7 +71,7 @@ public class Plc {
 
         ReadHoldingRegistersRequest request = new ReadHoldingRegistersRequest(address, quantity);
 
-        LOGGER.info("Sending readHoldingRegisters: " + request);
+        // LOGGER.info("Sending readHoldingRegisters: " + request);
 
         ReadHoldingRegistersResponse response = client.readHoldingRegisters(
                 1,
@@ -86,7 +87,7 @@ public class Plc {
 
         ReadInputRegistersRequest request = new ReadInputRegistersRequest(address, quantity);
 
-        LOGGER.info("Sending readInputRegisters: " + request);
+         // LOGGER.info("Sending readInputRegisters: " + request);
 
         ReadInputRegistersResponse response = client.readInputRegisters(
                 1,
@@ -102,7 +103,7 @@ public class Plc {
 
         ReadCoilsRequest request = new ReadCoilsRequest(address, quantity);
 
-        LOGGER.info("Sending readCoilsRequest: " + request);
+        // LOGGER.info("Sending readCoilsRequest: " + request);
 
         ReadCoilsResponse response = client.readCoils(
                 1,
@@ -117,7 +118,7 @@ public class Plc {
 
         ReadDiscreteInputsRequest request = new ReadDiscreteInputsRequest(address, quantity);
 
-        LOGGER.info("Sending readDiscreteInputsRequest: " + request);
+        // LOGGER.info("Sending readDiscreteInputsRequest: " + request);
 
         ReadDiscreteInputsResponse response = client.readDiscreteInputs(
                 1,

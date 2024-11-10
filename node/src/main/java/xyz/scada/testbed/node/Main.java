@@ -47,7 +47,6 @@ public class Main {
         SpringApplication.run(Main.class, args);
     }
 
-
     @ShellMethod(value = "Select PLC type.", group = "TCP")
     public void plcType(@ShellOption(help = "Possible values are 'Progression'") String type) {
         if (modbusTCP == null) {
@@ -215,6 +214,16 @@ public class Main {
         } catch (Exception e) {
             System.err.println("Failed to read coils: " + e.getMessage());
         }
+    }
+
+    @ShellMethod(value = "Simulate routine in loop", group = "HMI", prefix = "")
+    public void routine(@ShellOption() String ProgressionName, @ShellOption() String BrakesName,
+                        @ShellOption() String SecurityName, @ShellOption() String LightsName,
+                        @ShellOption() String EngineName) {
+        if (hmi == null)
+            hmi = new HMI();
+
+        hmi.startRoutine(ProgressionName, BrakesName, SecurityName, LightsName, EngineName);
     }
 
     @ShellMethod(value = "Gets the checkpoint from the given progression Plc", group = "HMI-Progression", prefix = "")
@@ -416,7 +425,6 @@ public class Main {
         }
     }
 
-
     // TODO check for historian
 
     // TODO modify historian to connect to Modbus
@@ -443,16 +451,7 @@ public class Main {
     public void run() {
         if (mode.equals("N/A"))
             System.out.println("Error mode not set. Configure node as either: RTU, HMI or Historian.");
-        // if (rtu != null) rtu.start();
         if (modbusTCP != null) modbusTCP.start(listen, portModbus);
-        // if (hmi != null) hmi.start();
-        // if (hist != null) {
-        //     try {
-        //         hist.main("opc.tcp://127.0.0.1:8666");
-        //     } catch (Exception e) {
-        //         e.printStackTrace();
-        //     }
-        // }
     }
 
     @ShellMethod(value = "Show Current configuration.")
